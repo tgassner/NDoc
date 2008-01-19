@@ -191,10 +191,10 @@
 	<xsl:template name="type-name">
 		<xsl:choose>
 			<xsl:when test="local-name()='constructor' or local-name()='field' or local-name()='property' or local-name()='method' or local-name()='event' or local-name()='operator'">
-				<xsl:value-of select="../@name" />
+				<xsl:value-of select="../@displayName" />
 			</xsl:when>
 			<xsl:otherwise>
-				<xsl:value-of select="@name" />
+				<xsl:value-of select="@displayName" />
 			</xsl:otherwise>
 		</xsl:choose>
 	</xsl:template>
@@ -313,7 +313,7 @@
 								<xsl:attribute name="href">
 									<xsl:call-template name="get-filename-for-current-property-overloads" />
 								</xsl:attribute>
-								<xsl:value-of select="concat($typeName, '.', @name)" />
+								<xsl:value-of select="concat($typeName, '.', @displayName)" />
 								<xsl:text> Overload List</xsl:text>
 							</a>
 						</xsl:when>
@@ -323,7 +323,7 @@
 								<xsl:attribute name="href">
 									<xsl:call-template name="get-filename-for-current-method-overloads" />
 								</xsl:attribute>
-								<xsl:value-of select="concat($typeName, '.', @name)" />
+								<xsl:value-of select="concat($typeName, '.', @displayName)" />
 								<xsl:text> Overload List</xsl:text>
 							</a>
 						</xsl:when>
@@ -548,7 +548,7 @@
 			</xsl:attribute>
 			<xsl:value-of select="@interface" />
 			<xsl:text>.</xsl:text>
-			<xsl:value-of select="@name" />
+			<xsl:value-of select="@displayName" />
 		</a>
 	</xsl:template>
 	<!-- -->
@@ -590,7 +590,7 @@
 						<th width="50%">Reason</th>
 					</tr>
 					<xsl:for-each select="documentation/event">
-						<xsl:sort select="@name" />
+						<xsl:sort select="@displayName" />
 						<tr valign="top">
 							<td width="50%">
 								<xsl:call-template name="get-a-href-with-name">
@@ -619,7 +619,7 @@
 						<th width="50%">Condition</th>
 					</tr>
 					<xsl:for-each select="documentation/exception">
-						<xsl:sort select="@name" />
+						<xsl:sort select="@displayName" />
 						<tr valign="top">
 							<td width="50%">
 								<xsl:call-template name="get-a-href-with-name">

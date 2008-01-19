@@ -19,10 +19,9 @@
 					<xsl:with-param name="type" select="local-name()" />
 				</xsl:call-template>
 				<xsl:text>&#160;</xsl:text>
-				<xsl:if test="local-name() != 'interface' and @abstract = 'true'">abstract&#160;</xsl:if>
-				<xsl:if test="@sealed = 'true'">
-					<xsl:text>sealed&#160;</xsl:text>
-				</xsl:if>
+        <xsl:if test="local-name() != 'interface' and @abstract = 'true' and @sealed != 'true'">abstract&#160;</xsl:if>
+        <xsl:if test="local-name() != 'interface' and @abstract = 'true' and @sealed = 'true'">static&#160;</xsl:if>
+        <xsl:if test="local-name() != 'interface' and @abstract != 'true' and @sealed = 'true'">sealed&#160;</xsl:if>
 				<xsl:choose>
 					<xsl:when test="local-name()='structure'">
 						<xsl:text>struct</xsl:text>
@@ -36,12 +35,10 @@
 				</xsl:choose>
 				<xsl:text>&#160;</xsl:text>
 				<xsl:if test="local-name()='delegate'">
-					<xsl:call-template name="get-datatype">
-						<xsl:with-param name="datatype" select="@returnType" />
-					</xsl:call-template>
-					<xsl:text>&#160;</xsl:text>
+          <xsl:call-template name="get-return-datatype"/>
+          <xsl:text>&#160;</xsl:text>
 				</xsl:if>
-				<xsl:value-of select="@name" />
+				<xsl:value-of select="@displayName" />
 				<xsl:if test="local-name() != 'enumeration' and local-name() != 'delegate'">
 					<xsl:call-template name="derivation" />
 				</xsl:if>
@@ -63,12 +60,12 @@
 					<a>
 						<xsl:attribute name="href">
 							<xsl:call-template name="get-filename-for-type-name">
-								<xsl:with-param name="type-name" select="./base/@type" />
-							</xsl:call-template>
+                <xsl:with-param name="type-name" select="concat(./base/@namespace,'.',./base/@name)" />
+              </xsl:call-template>
 						</xsl:attribute>
 						<xsl:call-template name="get-datatype">
-							<xsl:with-param name="datatype" select="@baseType" />
-						</xsl:call-template>
+              <xsl:with-param name="datatype" select="./base/@displayName" />
+            </xsl:call-template>
 					</a>
 					<xsl:if test="implements[not(@inherited)]">
 						<xsl:text>, </xsl:text>
@@ -81,17 +78,19 @@
 								<xsl:with-param name="type-name" select="@type" />
 							</xsl:call-template>
 						</xsl:attribute>
-						<xsl:call-template name="get-datatype">
-							<xsl:with-param name="datatype" select="@type" />
-						</xsl:call-template>
-					</a>
-					<xsl:if test="position()!=last()">
+            <!-- Fix from David Smith, March 30, 2006 @ 2:38 pm-->
+            <xsl:value-of select="@displayType" />
+          </a>
+          <xsl:if test="position()!=last()">
 						<xsl:text>, </xsl:text>
 					</xsl:if>
 				</xsl:for-each>
 			</b>
 		</xsl:if>
-	</xsl:template>
+    <xsl:call-template name="generics-constraints">
+      <xsl:with-param name="version">long</xsl:with-param>
+    </xsl:call-template>
+    </xsl:template>
 	<!-- -->
 	<xsl:template name="cs-member-syntax">
 		<div class="syntax">
@@ -119,7 +118,7 @@
 			</xsl:if>
 			<xsl:choose>
 				<xsl:when test="local-name()='constructor'">
-					<xsl:value-of select="../@name" />
+					<xsl:value-of select="../@displayName" />
 				</xsl:when>
 				<xsl:otherwise>
 					<xsl:if test="@name != 'op_Explicit' and @name != 'op_Implicit'">
@@ -130,11 +129,9 @@
 									<xsl:with-param name="type-name" select="@returnType" />
 								</xsl:call-template>
 							</xsl:attribute>
-							<xsl:call-template name="get-datatype">
-								<xsl:with-param name="datatype" select="@returnType" />
-							</xsl:call-template>
-						</a>
-						<xsl:text>&#160;</xsl:text>
+              <xsl:call-template name="get-return-datatype"/>
+            </a>
+            <xsl:text>&#160;</xsl:text>
 					</xsl:if>
 					<xsl:choose>
 						<xsl:when test="local-name()='operator'">
@@ -148,11 +145,9 @@
 												<xsl:with-param name="type-name" select="@returnType" />
 											</xsl:call-template>
 										</xsl:attribute>
-										<xsl:call-template name="get-datatype">
-											<xsl:with-param name="datatype" select="@returnType" />
-										</xsl:call-template>
-									</a>
-								</xsl:when>
+                    <xsl:call-template name="get-return-datatype"/>
+                  </a>
+                </xsl:when>
 								<xsl:when test="@name='op_Implicit'">
 									<xsl:text>implicit operator </xsl:text>
 									<!-- output the return type. this is duplicated code. -->
@@ -162,12 +157,10 @@
 												<xsl:with-param name="type-name" select="@returnType" />
 											</xsl:call-template>
 										</xsl:attribute>
-										<xsl:call-template name="get-datatype">
-											<xsl:with-param name="datatype" select="@returnType" />
-										</xsl:call-template>
-									</a>
-								</xsl:when>
-								<xsl:otherwise>
+                    <xsl:call-template name="get-return-datatype"/>
+                  </a>
+                </xsl:when>
+                <xsl:otherwise>
 									<xsl:call-template name="csharp-operator-name">
 										<xsl:with-param name="name" select="@name" />
 									</xsl:call-template>
@@ -175,7 +168,8 @@
 							</xsl:choose>
 						</xsl:when>
 						<xsl:otherwise>
-							<xsl:value-of select="@name" />
+              <xsl:call-template name="generics-arguments"/>
+              <xsl:value-of select="@displayName" />
 						</xsl:otherwise>
 					</xsl:choose>
 				</xsl:otherwise>
@@ -184,7 +178,10 @@
 				<xsl:with-param name="version">long</xsl:with-param>
 				<xsl:with-param name="namespace-name" select="../../@name" />
 			</xsl:call-template>
-		</div>
+      <xsl:call-template name="generics-constraints">
+        <xsl:with-param name="version">long</xsl:with-param>
+      </xsl:call-template>
+    </div>
 	</xsl:template>
 	<!-- -->
 	<xsl:template name="member-syntax2">
@@ -207,42 +204,55 @@
 		</xsl:if>
 		<xsl:choose>
 			<xsl:when test="local-name()='constructor'">
-				<xsl:value-of select="../@name" />
+				<xsl:value-of select="../@displayName" />
 			</xsl:when>
 			<xsl:when test="local-name()='operator'">
-				<xsl:call-template name="get-datatype">
-					<xsl:with-param name="datatype" select="@returnType" />
-				</xsl:call-template>
-				<xsl:text>&#160;</xsl:text>
-				<xsl:call-template name="operator-name">
-					<xsl:with-param name="name">
+        <xsl:call-template name="get-return-datatype"/>
+        <xsl:text>&#160;</xsl:text>
+        <xsl:call-template name="operator-name">
+          <xsl:with-param name="name">
 						<xsl:value-of select="@name" />
 					</xsl:with-param>
-					<xsl:with-param name="from">
-						<xsl:value-of select="parameter/@type" />
-					</xsl:with-param>
-					<xsl:with-param name="to">
-						<xsl:value-of select="@returnType" />
-					</xsl:with-param>
-				</xsl:call-template>
-			</xsl:when>
-			<xsl:otherwise>
-				<xsl:call-template name="get-datatype">
-					<xsl:with-param name="datatype" select="@returnType" />
-				</xsl:call-template>
-				<xsl:text>&#160;</xsl:text>
-				<xsl:value-of select="@name" />
+          <xsl:with-param name="from" select="parameter/@displayName"/>
+          <xsl:with-param name="to" select="@displayReturnType" />
+        </xsl:call-template>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:call-template name="get-return-datatype"/>
+        <xsl:text>&#160;</xsl:text>
+				<xsl:value-of select="@displayName" />
 			</xsl:otherwise>
 		</xsl:choose>
 		<xsl:if test="@name!='op_Implicit' and @name!='op_Explicit'">
-			<xsl:call-template name="parameters">
+      <xsl:call-template name="generics-arguments"/>
+        <xsl:call-template name="parameters">
 				<xsl:with-param name="version">short</xsl:with-param>
 				<xsl:with-param name="namespace-name" select="../../@name" />
 			</xsl:call-template>
-		</xsl:if>
+      <xsl:call-template name="generics-constraints">
+        <xsl:with-param name="version">short</xsl:with-param>
+      </xsl:call-template>
+    </xsl:if>
 	</xsl:template>
 	<!-- -->
-	<xsl:template name="cs-field-or-event-syntax">
+
+  <!-- JLD: wrapper for return type display-->
+  <xsl:template name="get-return-datatype">
+    <xsl:choose>
+      <xsl:when test="@displayReturnType">
+        <xsl:call-template name="get-datatype">
+          <xsl:with-param name="datatype" select="@displayReturnType" />
+        </xsl:call-template>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:call-template name="get-datatype">
+          <xsl:with-param name="datatype" select="@returnType" />
+        </xsl:call-template>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <xsl:template name="cs-field-or-event-syntax">
 		<div class="syntax">
 			<xsl:if test="$ndoc-vb-syntax">
 				<span class="lang">[C#]</span>
@@ -280,10 +290,9 @@
 						<xsl:with-param name="type-name" select="@type" />
 					</xsl:call-template>
 				</xsl:attribute>
-				<xsl:call-template name="get-datatype">
-					<xsl:with-param name="datatype" select="@type" />
-				</xsl:call-template>
-			</a>
+        <!-- Fix from David Smith, March 30, 2006 @ 2:38 pm-->
+        <xsl:value-of select="@displayName" />
+      </a>
 			<xsl:text>&#160;</xsl:text>
 			<xsl:value-of select="@name" />
 			<xsl:if test="@literal='true'">
@@ -329,18 +338,16 @@
 							<xsl:with-param name="type-name" select="@type" />
 						</xsl:call-template>
 					</xsl:attribute>
-					<xsl:call-template name="value">
-						<xsl:with-param name="type" select="@type" />
-					</xsl:call-template>
-				</a>
-			</xsl:when>
-			<xsl:otherwise>
-				<xsl:call-template name="value">
-					<xsl:with-param name="type" select="@type" />
-				</xsl:call-template>
-			</xsl:otherwise>
-		</xsl:choose>
-		<xsl:text>&#160;</xsl:text>
+          <!-- Fix from David Smith, March 30, 2006 @ 2:38 pm-->
+          <xsl:value-of select="@displayName" />
+        </a>
+      </xsl:when>
+      <xsl:otherwise>
+        <!-- Fix from David Smith, March 30, 2006 @ 2:38 pm-->
+        <xsl:value-of select="@displayName" />
+      </xsl:otherwise>
+    </xsl:choose>
+    <xsl:text>&#160;</xsl:text>
 		<xsl:choose>
 			<xsl:when test="parameter">
 				<xsl:text>this[</xsl:text>
@@ -359,19 +366,15 @@
 										<xsl:with-param name="type-name" select="@type" />
 									</xsl:call-template>
 								</xsl:attribute>
-								<xsl:call-template name="csharp-type">
-									<xsl:with-param name="runtime-type" select="@type" />
-								</xsl:call-template>
-							</a>
-						</xsl:when>
-						<xsl:otherwise>
-							<xsl:call-template name="csharp-type">
-								<xsl:with-param name="runtime-type" select="@type" />
-							</xsl:call-template>
-						</xsl:otherwise>
-					</xsl:choose>
-					<xsl:if test="$display-names">
-						<xsl:text>&#160;</xsl:text>
+                <xsl:value-of  select="@displayName" />
+              </a>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:value-of  select="@displayName" />
+            </xsl:otherwise>
+          </xsl:choose>
+          <xsl:if test="$display-names">
+            <xsl:text>&#160;</xsl:text>
 						<i>
 							<xsl:value-of select="@name" />
 						</i>
@@ -404,7 +407,69 @@
 		</xsl:if>
 		<xsl:text>}</xsl:text>
 	</xsl:template>
-	<!-- -->
+  <!-- JLD: -->
+  <xsl:template name="generics-arguments">
+     <xsl:if test="genericArgument">
+      <xsl:text>&lt;</xsl:text>
+       <xsl:for-each select="genericArgument">
+          <xsl:value-of select="@name" />
+          <xsl:if test="position()!= last()">
+            <xsl:text>,</xsl:text>
+          </xsl:if>
+      </xsl:for-each>
+      <xsl:text>&gt;</xsl:text>
+    </xsl:if>
+  </xsl:template>
+  <!-- JLD: -->
+  <xsl:template name="generics-constraints">
+    <xsl:param name="version" />
+    <xsl:if test="genericArgument">
+     <xsl:for-each select="genericArgument[@constraint != 'None' or constraintType]">
+       <xsl:if test="@constraint != 'None' or constraintType">
+        <xsl:text>&#160;where&#160;</xsl:text>
+        <xsl:value-of select="@name" />
+        <xsl:text>:&#160;</xsl:text>
+         <xsl:choose>
+           <xsl:when test="@constraint = 'None'"/>
+             <xsl:when test="@constraint = 'ReferenceTypeConstraint'">
+             <xsl:text>class</xsl:text>
+             <xsl:if test="constraintType">
+               <xsl:text>,&#160;</xsl:text>
+             </xsl:if>
+           </xsl:when>
+           <xsl:otherwise>
+             <xsl:value-of select="@constraint" />
+             <xsl:if test="constraintType">
+               <xsl:text>,&#160;</xsl:text>
+             </xsl:if>
+           </xsl:otherwise>
+          </xsl:choose>
+         </xsl:if>
+       <xsl:for-each select="constraintType">
+         <xsl:if test="$version='long'">
+           <a>
+           <xsl:attribute name="href">
+             <xsl:call-template name="get-filename-for-type-name">
+               <xsl:with-param name="type-name" select="@type" />
+             </xsl:call-template>
+           </xsl:attribute>
+             <xsl:value-of select="@displayName" />
+           </a>
+         </xsl:if>
+         <xsl:if test="$version!='long'">
+           <xsl:value-of select="@displayName" />
+         </xsl:if>
+         <xsl:if test="position()!= last()">
+           <xsl:text>,</xsl:text>
+         </xsl:if>
+       </xsl:for-each>
+       <xsl:if test="position()!= last()">
+          <xsl:text>,&#160;</xsl:text>
+        </xsl:if>
+      </xsl:for-each>
+    </xsl:if>
+  </xsl:template>
+  <!-- -->
 	<xsl:template name="parameters">
 		<xsl:param name="version" />
 		<xsl:param name="namespace-name" />
@@ -428,18 +493,14 @@
 									<xsl:with-param name="type-name" select="@type" />
 								</xsl:call-template>
 							</xsl:attribute>
-							<xsl:call-template name="get-datatype">
-								<xsl:with-param name="datatype" select="@type" />
-							</xsl:call-template>
-						</a>
-					</xsl:when>
-					<xsl:otherwise>
-						<xsl:call-template name="get-datatype">
-							<xsl:with-param name="datatype" select="@type" />
-						</xsl:call-template>
-					</xsl:otherwise>
-				</xsl:choose>
-				<xsl:if test="$version='long'">
+              <xsl:value-of select="@displayName" />
+            </a>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:value-of select="@displayName" />
+          </xsl:otherwise>
+        </xsl:choose>
+        <xsl:if test="$version='long'">
 					<xsl:text>&#160;</xsl:text>
 					<i>
 						<xsl:value-of select="@name" />
@@ -472,7 +533,8 @@
 		<xsl:text>(</xsl:text>
 		<xsl:for-each select="parameter">
 			<xsl:call-template name="strip-namespace">
-				<xsl:with-param name="name" select="@type" />
+        <!-- Fix from David Smith, March 30, 2006 @ 2:38 pm-->
+        <xsl:with-param name="name" select="@displayName" />
 			</xsl:call-template>
 			<xsl:if test="position()!=last()">
 				<xsl:text>, </xsl:text>

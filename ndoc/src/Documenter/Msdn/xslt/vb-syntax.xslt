@@ -83,7 +83,7 @@
 					<xsl:otherwise>ERROR</xsl:otherwise>
 				</xsl:choose>
 				<xsl:text>&#160;</xsl:text>
-				<xsl:value-of select="@name" />
+				<xsl:value-of select="@displayName" />
 				<xsl:choose>
 					<xsl:when test="local-name() != 'delegate'">
 						<xsl:if test="@baseType">
@@ -216,7 +216,7 @@
 			</xsl:otherwise>
 		</xsl:choose>
 		<i>
-			<xsl:value-of select="@name" />
+			<xsl:value-of select="@displayName" />
 		</i>
 		<xsl:text>&#160;As&#160;</xsl:text>
 		<a>
@@ -291,7 +291,7 @@
 							</xsl:when>
 							<xsl:otherwise>
 								<xsl:call-template name="strip-namespace">
-									<xsl:with-param name="name" select="@name" />
+									<xsl:with-param name="name" select="@displayName" />
 								</xsl:call-template>
 							</xsl:otherwise>
 						</xsl:choose>
@@ -299,9 +299,9 @@
 					</xsl:when>
 					<xsl:otherwise>
 						<span class="meta">returnValue = </span>
-						<xsl:value-of select="../@name" />
+						<xsl:value-of select="../@displayName" />
 						<xsl:text>.</xsl:text>
-						<xsl:value-of select="@name" />
+						<xsl:value-of select="@displayName" />
 						<xsl:text>(</xsl:text>
 						<xsl:for-each select="parameter">
 							<xsl:value-of select="@name" />
@@ -353,7 +353,7 @@
 						</xsl:call-template>
 					</xsl:attribute>
 					<xsl:call-template name="vb-type">
-						<xsl:with-param name="runtime-type" select="@type" />
+						<xsl:with-param name="runtime-type" select="@displayType" />
 					</xsl:call-template>
 				</a>
 				<xsl:if test="@literal='true'">
@@ -418,7 +418,7 @@
 					</xsl:call-template>
 				</xsl:attribute>
 				<xsl:call-template name="vb-type">
-					<xsl:with-param name="runtime-type" select="@type" />
+					<xsl:with-param name="runtime-type" select="@displayType" />
 				</xsl:call-template>
 			</a>
 			<xsl:if test="implements">

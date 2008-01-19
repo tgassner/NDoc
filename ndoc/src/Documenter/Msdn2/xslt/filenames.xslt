@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:NUtil="urn:NDocUtil"
+	xmlns:NHtmlProvider="urn:NDocExternalHtml" exclude-result-prefixes="NUtil NHtmlProvider">
   <!-- -->
   <xsl:template name="get-filename-for-current-namespace-hierarchy">
     <xsl:value-of select="concat(translate($namespace, '[,]', ''), 'Hierarchy.html')" />
@@ -111,6 +112,13 @@
     <xsl:param name="declaring-type" />
     <xsl:param name="method-name" />
     <xsl:variable name="type-part" select="translate(translate($declaring-type, '[,]', ''), '#', '.')" />
+    <xsl:value-of select="concat($type-part, '.', $method-name, '.html')" />
+  </xsl:template>
+  <!-- -->
+  <xsl:template name="get-filename-for-inherited-method-overloads_overloadspage">
+    <xsl:param name="declaring-type" />
+    <xsl:param name="method-name" />
+    <xsl:variable name="type-part" select="translate(translate($declaring-type, '[,]', ''), '#', '.')" />
     <xsl:value-of select="concat($type-part, '.', $method-name, '_overloads.html')" />
   </xsl:template>
   <!-- -->
@@ -189,7 +197,7 @@
 
   <xsl:template name="get-filename-for-system-type">
     <xsl:param name="type-name" />
-    <xsl:value-of select="concat($ndoc-sdk-doc-base-url, translate($type-name, '.[,]*', ''), 'ClassTopic', $ndoc-sdk-doc-file-ext)" />
+    <xsl:value-of select="string(NUtil:GetClassTopic($type-name))" />
   </xsl:template>
 
   <xsl:template name="get-filename-for-system-property">

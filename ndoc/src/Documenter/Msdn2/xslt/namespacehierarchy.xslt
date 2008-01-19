@@ -11,11 +11,11 @@
 		<xsl:variable name="ns" select="ndoc/namespaceHierarchies/namespaceHierarchy[@name=$namespace][1]" />
 		<html dir="LTR">
 			<xsl:call-template name="html-head">
-				<xsl:with-param name="title" select="concat($ns/@name, 'Hierarchy')" />
+				<xsl:with-param name="title" select="concat($ns/@displayName, 'Hierarchy')" />
 			</xsl:call-template>
 			<body topmargin="0" id="bodyID" class="dtBODY">
 				<xsl:call-template name="title-row">
-					<xsl:with-param name="type-name" select="concat($ns/@name, ' Hierarchy')" />
+					<xsl:with-param name="type-name" select="concat($ns/@displayName, ' Hierarchy')" />
 				</xsl:call-template>
 				<div id="nstext" valign="bottom">
 					<xsl:apply-templates select="$ns" />
@@ -31,7 +31,7 @@
 						</a>
 					</p>
 					<xsl:call-template name="footer-row">
-						<xsl:with-param name="type-name" select="concat($ns/@name, ' Hierarchy')" />
+						<xsl:with-param name="type-name" select="concat($ns/@displayName, ' Hierarchy')" />
 					</xsl:call-template>
 				</div>
 			</body>

@@ -147,6 +147,7 @@
 				<xsl:variable name="name" select="@name" />
 				<dt>
 					<i>
+            <!-- Fix from David Smith, March 30, 2006 @ 2:38 pm-->
 						<xsl:value-of select="@name" />
 					</i>
 				</dt>
@@ -162,12 +163,14 @@
 			<xsl:when test="local-name()='constructor' or local-name()='property' or local-name()='method' or local-name()='event' or local-name()='operator'">
 				<xsl:choose>
 					<xsl:when test="local-name(..)='interface'">Interface</xsl:when>
+					<xsl:when test="local-name(..)='structure'">Structure</xsl:when>
 					<xsl:otherwise>Class</xsl:otherwise>
 				</xsl:choose>
 			</xsl:when>
 			<xsl:otherwise>
 				<xsl:choose>
 					<xsl:when test="local-name()='interface'">Interface</xsl:when>
+					<xsl:when test="local-name()='structure'">Structure</xsl:when>
 					<xsl:otherwise>Class</xsl:otherwise>
 				</xsl:choose>
 			</xsl:otherwise>
@@ -187,11 +190,11 @@
 	<!-- -->
 	<xsl:template name="type-name">
 		<xsl:choose>
-			<xsl:when test="local-name()='constructor' or local-name()='field' or local-name()='property' or local-name()='method' or local-name()='event' or local-name()='operator'">
-				<xsl:value-of select="../@name" />
-			</xsl:when>
-			<xsl:otherwise>
-				<xsl:value-of select="@name" />
+      <xsl:when test="local-name()='constructor' or local-name()='field' or local-name()='property' or local-name()='method' or local-name()='event' or local-name()='operator'">
+        <xsl:value-of select="../@displayName" />
+      </xsl:when>
+      <xsl:otherwise>
+				<xsl:value-of select="@displayName" />
 			</xsl:otherwise>
 		</xsl:choose>
 	</xsl:template>
@@ -307,7 +310,7 @@
 								<xsl:attribute name="href">
 									<xsl:call-template name="get-filename-for-current-property-overloads" />
 								</xsl:attribute>
-								<xsl:value-of select="concat($typeName, '.', @name)" />
+								<xsl:value-of select="concat($typeName, '.', @displayName)" />
 								<xsl:text> Overload List</xsl:text>
 							</a>
 						</xsl:when>
@@ -317,7 +320,7 @@
 								<xsl:attribute name="href">
 									<xsl:call-template name="get-filename-for-current-method-overloads" />
 								</xsl:attribute>
-								<xsl:value-of select="concat($typeName, '.', @name)" />
+								<xsl:value-of select="concat($typeName, '.', @displayName)" />
 								<xsl:text> Overload List</xsl:text>
 							</a>
 						</xsl:when>
@@ -526,7 +529,7 @@
 			</xsl:attribute>
 			<xsl:value-of select="@interface" />
 			<xsl:text>.</xsl:text>
-			<xsl:value-of select="@name" />
+			<xsl:value-of select="@displayName" />
 		</a>
 	</xsl:template>
 	<!-- -->
@@ -981,16 +984,16 @@
 			<xsl:when test="$name='op_DivisionAssignment'">Division Assignment Operator</xsl:when>
 			<xsl:when test="$name='op_Implicit'">
 				<xsl:text>Implicit </xsl:text>
-				<!--<xsl:value-of select="$from" />
+				<xsl:value-of select="$from" />
 				    <xsl:text> to </xsl:text>
-				    <xsl:value-of select="$to" />-->
-				<xsl:call-template name="strip-namespace">
+				    <xsl:value-of select="$to" />
+				<!-- <xsl:call-template name="strip-namespace">
 					<xsl:with-param name="name" select="$from" />
 				</xsl:call-template>
 				<xsl:text> to </xsl:text>
 				<xsl:call-template name="strip-namespace">
 					<xsl:with-param name="name" select="$to" />
-				</xsl:call-template>
+				</xsl:call-template> -->
 				<!--KSD-->
 				<xsl:text> Conversion</xsl:text>
 			</xsl:when>

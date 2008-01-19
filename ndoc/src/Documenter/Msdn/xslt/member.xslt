@@ -26,12 +26,8 @@
 				    <xsl:with-param name="name">
 				      <xsl:value-of select="@name" />
 				    </xsl:with-param>
-				    <xsl:with-param name="from">
-				      <xsl:value-of select="parameter/@type" />
-				    </xsl:with-param>
-				    <xsl:with-param name="to">
-				      <xsl:value-of select="@returnType" />
-				    </xsl:with-param>
+            <xsl:with-param name="from" select="parameter/@displayName"/>
+            <xsl:with-param name="to" select="@displayReturnType" />
 			    </xsl:call-template>
 				</xsl:when>
 				<xsl:when test="@contract='Static'">Static Constructor</xsl:when>
@@ -42,10 +38,10 @@
 		<html dir="LTR">
 			<xsl:call-template name="html-head">
 				<xsl:with-param name="title">
-					<xsl:value-of select="../@name" />
+					<xsl:value-of select="../@displayName" />
 					<xsl:if test="local-name()='method'">
 						<xsl:text>.</xsl:text>
-						<xsl:value-of select="@name" />
+						<xsl:value-of select="@displayName" />
 					</xsl:if>
 					<xsl:text>&#32;</xsl:text>
 					<xsl:value-of select="$childType" />
@@ -60,10 +56,10 @@
 			<body id="bodyID" class="dtBODY">
 				<xsl:call-template name="title-row">
 					<xsl:with-param name="type-name">
-						<xsl:value-of select="../@name" />
+						<xsl:value-of select="../@displayName" />
 						<xsl:if test="local-name()='method'">
 							<xsl:text>.</xsl:text>
-							<xsl:value-of select="@name" />
+							<xsl:value-of select="@displayName" />
 						</xsl:if>
 						<xsl:text>&#160;</xsl:text>
 						<xsl:value-of select="$childType" />
@@ -98,7 +94,7 @@
 								<object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e" viewastext="true" style="display: none;">
 									<xsl:element name="param">
 										<xsl:attribute name="name">Keyword</xsl:attribute>
-										<xsl:attribute name="value"><xsl:value-of select='../@name' /> class, constructor</xsl:attribute>
+										<xsl:attribute name="value"><xsl:value-of select='../@displayName' /> class, constructor</xsl:attribute>
 									</xsl:element>
 								</object>
 							</xsl:if>
@@ -110,15 +106,15 @@
 							<object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e" viewastext="true" style="display: none;">
 								<xsl:element name="param">
 									<xsl:attribute name="name">Keyword</xsl:attribute>
-									<xsl:attribute name="value"><xsl:value-of select='@name' /> method</xsl:attribute>
+									<xsl:attribute name="value"><xsl:value-of select='@displayName' /> method</xsl:attribute>
 								</xsl:element>
 								<xsl:element name="param">
 									<xsl:attribute name="name">Keyword</xsl:attribute>
-									<xsl:attribute name="value"><xsl:value-of select="concat(@name, ' method, ', ../@name, ' ', local-name(parent::*))" /></xsl:attribute>
+									<xsl:attribute name="value"><xsl:value-of select="concat(@displayName, ' method, ', ../@displayName, ' ', local-name(parent::*))" /></xsl:attribute>
 								</xsl:element>
 								<xsl:element name="param">
 									<xsl:attribute name="name">Keyword</xsl:attribute>
-									<xsl:attribute name="value"><xsl:value-of select='../@name' />.<xsl:value-of select='@name' /> method</xsl:attribute>
+									<xsl:attribute name="value"><xsl:value-of select='../@displayName' />.<xsl:value-of select='@displayName' /> method</xsl:attribute>
 								</xsl:element>
 							</object>
 						</xsl:if>
@@ -126,10 +122,10 @@
 					
 					<xsl:call-template name="footer-row">
 						<xsl:with-param name="type-name">
-							<xsl:value-of select="../@name" />
+							<xsl:value-of select="../@displayName" />
 							<xsl:if test="local-name()='method'">
 								<xsl:text>.</xsl:text>
-								<xsl:value-of select="@name" />
+								<xsl:value-of select="@displayName" />
 							</xsl:if>
 							<xsl:text>&#160;</xsl:text>
 							<xsl:value-of select="$childType" />

@@ -36,7 +36,7 @@
 					<xsl:when test="*[local-name()=$member and @name!='op_Implicit' and @name!='op_Explicit']">
 						<xsl:choose>
 							<xsl:when test="*[local-name()=$member and (@name='op_Implicit' or @name='op_Explicit')]">
-							Operators and Type Conversions
+							<xsl:text>Operators and Type Conversions</xsl:text>
 							</xsl:when>
 							<xsl:otherwise>Operators</xsl:otherwise>
 						</xsl:choose>
@@ -59,7 +59,7 @@
 					<xsl:when test="*[local-name()=$member and @name!='op_Implicit' and @name!='op_Explicit']">
 						<xsl:choose>
 							<xsl:when test="*[local-name()=$member and (@name='op_Implicit' or @name='op_Explicit')]">
-							operators and type conversions
+								<xsl:text>operators and type conversions</xsl:text>
 							</xsl:when>
 							<xsl:otherwise>operators</xsl:otherwise>
 						</xsl:choose>
@@ -98,7 +98,7 @@
 						</xsl:when>
 						<xsl:otherwise>
 					<xsl:apply-templates select="*[local-name()=$member and @access='Public' and @contract='Static']">
-						<xsl:sort select="@name" />
+						<xsl:sort select="@displayName" />
 					</xsl:apply-templates>
 						</xsl:otherwise>
 					</xsl:choose>
@@ -378,7 +378,7 @@
 						<xsl:text> (inherited from </xsl:text>
 						<b>
 							<xsl:call-template name="get-datatype">
-								<xsl:with-param name="datatype" select="@declaringType" />
+								<xsl:with-param name="datatype" select="@declaringName" />
 							</xsl:call-template>
 						</b>
 						<xsl:text>)</xsl:text>
@@ -400,7 +400,7 @@
 						<xsl:value-of select="@name" />
 						<xsl:text> (inherited from </xsl:text>
 						<b>
-							<xsl:value-of select="@declaringType" />
+							<xsl:value-of select="@declaringName" />
 						</b>
 						<xsl:text>)</xsl:text>
 					</td>
@@ -431,7 +431,7 @@
 				<xsl:text> (inherited from </xsl:text>
 				<b>
 					<xsl:call-template name="strip-namespace">
-						<xsl:with-param name="name" select="@declaringType" />
+						<xsl:with-param name="name" select="@declaringName" />
 					</xsl:call-template>
 				</b>
 				<xsl:text>)</xsl:text>
@@ -468,7 +468,7 @@
 						<xsl:text> (inherited from </xsl:text>
 						<b>
 							<xsl:call-template name="get-datatype">
-								<xsl:with-param name="datatype" select="@declaringType" />
+								<xsl:with-param name="datatype" select="@declaringName" />
 							</xsl:call-template>
 						</b>
 						<xsl:text>)</xsl:text>
@@ -490,7 +490,7 @@
 						<xsl:value-of select="@name" />
 						<xsl:text> (inherited from </xsl:text>
 						<b>
-							<xsl:value-of select="@declaringType" />
+							<xsl:value-of select="@declaringName" />
 						</b>
 						<xsl:text>)</xsl:text>
 					</td>
@@ -521,7 +521,7 @@
 				<xsl:text> (inherited from </xsl:text>
 				<b>
 					<xsl:call-template name="strip-namespace">
-						<xsl:with-param name="name" select="@declaringType" />
+						<xsl:with-param name="name" select="@declaringName" />
 					</xsl:call-template>
 				</b>
 				<xsl:text>)</xsl:text>
@@ -565,7 +565,7 @@
 									<xsl:text> (inherited from </xsl:text>
 									<b>
 										<xsl:call-template name="get-datatype">
-											<xsl:with-param name="datatype" select="@declaringType" />
+											<xsl:with-param name="datatype" select="@declaringName" />
 										</xsl:call-template>
 									</b>
 									<xsl:text>)</xsl:text>
@@ -595,7 +595,7 @@
 									<xsl:text> (inherited from </xsl:text>
 									<b>
 										<xsl:call-template name="get-datatype">
-											<xsl:with-param name="datatype" select="@declaringType" />
+											<xsl:with-param name="datatype" select="@declaringName" />
 										</xsl:call-template>
 									</b>
 									<xsl:text>)</xsl:text>
@@ -624,7 +624,7 @@
 							<xsl:value-of select="@name" />
 							<xsl:text> (inherited from </xsl:text>
 							<b>
-								<xsl:value-of select="@declaringType" />
+								<xsl:value-of select="@declaringName" />
 							</b>
 							<xsl:text>)</xsl:text>
 						</td>
@@ -666,7 +666,7 @@
 					<xsl:text> (inherited from </xsl:text>
 					<b>
 						<xsl:call-template name="strip-namespace">
-							<xsl:with-param name="name" select="@declaringType" />
+							<xsl:with-param name="name" select="@declaringName" />
 						</xsl:call-template>
 					</b>
 					<xsl:text>)</xsl:text>
@@ -709,7 +709,7 @@
 						<xsl:text> (inherited from </xsl:text>
 						<b>
 							<xsl:call-template name="get-datatype">
-								<xsl:with-param name="datatype" select="@declaringType" />
+								<xsl:with-param name="datatype" select="@declaringName" />
 							</xsl:call-template>
 						</b>
 						<xsl:text>)</xsl:text>
@@ -731,7 +731,7 @@
 						<xsl:value-of select="@name" />
 						<xsl:text> (inherited from </xsl:text>
 						<b>
-							<xsl:value-of select="@declaringType" />
+							<xsl:value-of select="@declaringName" />
 						</b>
 						<xsl:text>)</xsl:text>
 					</td>
@@ -762,7 +762,7 @@
 				<xsl:text> (inherited from </xsl:text>
 				<b>
 					<xsl:call-template name="strip-namespace">
-						<xsl:with-param name="name" select="@declaringType" />
+						<xsl:with-param name="name" select="@declaringName" />
 					</xsl:call-template>
 				</b>
 				<xsl:text>)</xsl:text>
@@ -802,8 +802,8 @@
 									<xsl:when test="local-name()='operator'">
 										<xsl:call-template name="operator-name">
 											<xsl:with-param name="name" select="@name" />
-											<xsl:with-param name="from" select="parameter/@type"/>
-											<xsl:with-param name="to" select="@returnType" />
+											<xsl:with-param name="from" select="parameter/@displayName"/>
+											<xsl:with-param name="to" select="@displayReturnType" />
 										</xsl:call-template>
 									</xsl:when>
 									<xsl:otherwise>
@@ -836,9 +836,9 @@
 									<xsl:when test="local-name()='operator'">
 										<xsl:call-template name="operator-name">
 											<xsl:with-param name="name" select="@name" />
-											<xsl:with-param name="from" select="parameter/@type"/>
-											<xsl:with-param name="to" select="@returnType" />
-										</xsl:call-template>
+                      <xsl:with-param name="from" select="parameter/@displayName"/>
+                      <xsl:with-param name="to" select="@displayReturnType" />
+                    </xsl:call-template>
 									</xsl:when>
 									<xsl:otherwise>
 										<xsl:value-of select="@name" />

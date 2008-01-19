@@ -25,10 +25,11 @@ See http://ndoc.sf.net/ for the latest information on releases.
 Building NDoc
 -------------
 
-If you have Visual Studio .NET 2003, you can build NDoc using the 
-NDoc.sln file located in this folder.
+If you have Visual Studio .NET 2005, you can build NDoc using the 
+NDoc.sln file located in this folder.  NDoc will no longer build under 
+Visual Studio 2003 due to addition of support for Generics.
 
-If you don't have VS.NET but do have the .NET Framework SDK and NAnt 
+If you don't have VS.NET but do have the .NET 2.0 Framework SDK and NAnt 
 v0.8.4 or above (http://nant.sf.net/) installed, then you can 
 build NDoc using the ndoc.build file located in this folder. Just type 
 nant from within that directory and you should be good to go.
