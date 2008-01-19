@@ -79,13 +79,17 @@ namespace NDoc.Core
 						Type type = parameter.ParameterType;
 
 #if NET_2_0
-                        if (type.ContainsGenericParameters)
+                        if (type.ContainsGenericParameters && type.IsGenericParameter)
                         {
                             memberName += "`" + type.GenericParameterPosition.ToString();
                         }
-                        else
+                        else if (type.FullName != null)
                         {
                             memberName += type.FullName;
+                        }
+                        else
+                        {
+                            memberName += type.Name;
                         }
 #else
 						memberName += type.FullName;
@@ -118,7 +122,7 @@ namespace NDoc.Core
 				method.Name.Replace('.', '#').Replace('+', '#');
 
 #if NET_2_0
-            if (method.HasGenericArguments)
+            if (method.IsGenericMethod)
                 memberName = memberName + "``" + method.GetGenericArguments().Length;
 #endif
 
@@ -150,7 +154,7 @@ namespace NDoc.Core
 		private static string GetTypeNamespaceName(Type type)
 		{
 #if NET_2_0
-            if (type.HasGenericArguments)
+            if (type.IsGenericType)
             {
                 return type.GetGenericTypeDefinition().FullName.Replace('+', '.');
             }
@@ -172,6 +176,22 @@ namespace NDoc.Core
 		{
 			return GetTypeNamespaceName(member.DeclaringType);
 		}
+
+        public static string GetDeclaringTypeDisplayName(MemberInfo member)
+        {
+#if NET_2_0
+            if (member.DeclaringType.IsGenericType)
+            {
+                return MemberDisplayName.GetTypeDisplayName(member.DeclaringType);
+            }
+            else
+            {
+                return member.DeclaringType.FullName.Replace('+', '.');
+            }
+#else
+			return member.DeclaringType.FullName.Replace('+', '.');
+#endif
+        }
 
 		private static string GetFullNamespaceName(MemberInfo member)
 		{
@@ -198,7 +218,7 @@ namespace NDoc.Core
 		public static string GetTypeName(Type type, bool UsePositionalNumber)
         {
             string result = "";
-            if (type.HasGenericArguments)
+            if (type.IsGenericType)
             {
                 // HACK: bug in reflection - namespace sometimes returns null
                 string typeNamespace = null;
@@ -245,13 +265,15 @@ namespace NDoc.Core
                     if (type.HasElementType)
                     {
                         Type eleType = type.GetElementType();
-                        System.Diagnostics.Debug.Write(eleType.GenericParameterPosition.ToString());
-                        if (UsePositionalNumber)
+                        // Fix from Blair Allen Stark, March 25, 2006 @ 11:21 pm
+                        if (UsePositionalNumber && eleType.IsGenericParameter)
                         {
+                            System.Diagnostics.Debug.Write(eleType.GenericParameterPosition.ToString());
                             result = "`" + eleType.GenericParameterPosition.ToString();
                         }
                         else
                         {
+                            System.Diagnostics.Debug.Write(eleType.Name);
                             result = eleType.Name;
                         }
 
@@ -284,7 +306,10 @@ namespace NDoc.Core
                     {
                         if (UsePositionalNumber)
                         {
-                            result = "`" + type.GenericParameterPosition.ToString();
+                            string positionIndicator = "`";
+                            if (type.DeclaringMethod != null)
+                                positionIndicator = "``";
+                            result = positionIndicator + type.GenericParameterPosition.ToString();
                         }
                         else
                         {
@@ -294,7 +319,8 @@ namespace NDoc.Core
                 }
                 else
                 {
-                    result = type.FullName.Replace("&", "").Replace('+', '#');
+                    //result = type.FullName.Replace("&", "").Replace('+', '#');
+                    result = type.FullName.Replace("&", "@").Replace('+', '.');
                 }
             }
             return result;
@@ -331,13 +357,20 @@ namespace NDoc.Core
                     argList.Append(',');
                 }
 
-                if (argType.HasGenericArguments | argType.HasElementType)
+                if (argType.IsGenericType | argType.HasElementType)
                 {
                     argList.Append(GetTypeName(argType));
                 }
                 else if (argType.ContainsGenericParameters)
                 {
-                    argList.Append('`');
+                    if (argType.DeclaringMethod == null)
+                    {
+                        argList.Append('`'); // Type parameter
+                    }
+                    else
+                    {
+                        argList.Append("``"); // method parameter
+                    }
                     argList.Append(argType.GenericParameterPosition.ToString());
                 }
                 else
@@ -389,11 +422,6 @@ namespace NDoc.Core
 			{
 				paramList.Append(')');
 			}
-
-#if NET_2_0
-			if (method.ContainsGenericParameters)
-                paramList.Replace("`", "``");
-#endif
 
 			return paramList.ToString();
 		}

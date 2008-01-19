@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
@@ -64,6 +65,11 @@ namespace NDoc.Documenter.Msdn
 		private ArrayList documentedNamespaces;
 
 		private Workspace workspace;
+
+        private Project project;
+
+        // Used only for V2.0 to validate correctness of ms-help links
+        public MsdnUrlValidator urlValidator = new MsdnUrlValidator();
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="MsdnDocumenter" />
@@ -151,9 +157,94 @@ namespace NDoc.Documenter.Msdn
 			return result;
 		}
 
+        /// <summary>
+        /// Check/Fix "type" attributes for a specified node. Called by FixGenericUrls
+        /// </summary>
+        /// <param name="node"></param>
+        /// <param name="updatedLinks"></param>
+        void FixNode(XmlNode node, ref bool updatedLinks, Dictionary<string,string> map)
+        {
+            if (node.Attributes != null)
+            {
+                for (int x = 0; x < node.Attributes.Count; x++)
+                {
+                    if (node.Attributes[x].Name == "type")
+                    {
+                        string memberType = node.Attributes[x].Value;
+                        string newValue = memberType;
+                        int genericStart = memberType.IndexOf("{");
+                        if (genericStart != -1)
+                        {
+                            int openBrackets = 0;
+                            int parameters = 1;
+                            for (int i = genericStart; i < memberType.Length; i++)
+                            {
+                                if (memberType[i] == '{')
+                                    openBrackets++;
+                                else if (memberType[i] == '}')
+                                {
+                                    openBrackets--;
+                                }
+                                else if (memberType[i] == ',')
+                                    if (openBrackets == 1)
+                                        parameters++;
+                            }
+                            newValue = memberType.Substring(0, genericStart);
+                            newValue += "`" + parameters.ToString();
+                        }
+                        if (memberType != newValue)
+                        {
+                            // Fix Enumerator, KeyCollection and ValueCollection due to incorrect System Reflection results
+                            if (map.ContainsKey(newValue))
+                            {
+                                newValue = map[newValue];
+                            }
+                            node.Attributes[x].Value = newValue;
+                            Debug.WriteLine("Fixed: " + memberType + " => " + newValue);
+                            updatedLinks = true;
+                        }
+                    }
+                }
+            }
+            if (node.HasChildNodes)
+            {
+                for (int i = 0; i < node.ChildNodes.Count; i++)
+                {
+                    FixNode(node.ChildNodes[i], ref updatedLinks, map);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Fix "type" attributes for Generics so href links will be correct
+        /// </summary>
+        /// <param name="fileName"></param>
+        void FixGenericUrls(string fileName)
+        {
+            /// <summary>
+            /// System reflection incorrectly reports Enumerator, KeyCollection and ValueCollection base types, so fix it here!
+            /// </summary>
+            Dictionary<string,string> map = new Dictionary<string, string>();
+            map.Add("System.Collections.Generic.Enumerator`1", "System.Collections.Generic.IEnumerator`1");
+            map.Add("System.Collections.Generic.Enumerator`2", "System.Collections.Generic.IEnumerator`1");
+            map.Add("System.Collections.Generic.KeyCollection`2", "System.Collections.Generic.Dictionary`2_KeyCollection");
+            map.Add("System.Collections.Generic.ValueCollection`2", "System.Collections.Generic.Dictionary`2_ValueCollection");
+
+            bool updatedLinks = false;
+            XmlDocument doc = new XmlDocument();
+            doc.Load(fileName);
+            FixNode((XmlNode)doc.DocumentElement, ref updatedLinks, map);
+            if (updatedLinks)
+            {
+                doc.Save(fileName);
+            }
+        }
+
+
 		/// <summary>See <see cref="IDocumenter"/>.</summary>
-		public override void Build(Project project)
+		public override void Build(Project _project)
 		{
+            project = _project; // Needed for MsdnHtmlUtilitiesV20
 			try
 			{
 				OnDocBuildingStep(0, "Initializing...");
@@ -226,12 +317,19 @@ namespace NDoc.Documenter.Msdn
 				// Will hold the name of the file name containing the XML doc
 				string tempFileName = null;
 
-				try 
+                string DocLangCode = Enum.GetName(typeof(SdkLanguage), MyConfig.SdkDocLanguage).Replace("_", "-");
+                utilities = new MsdnXsltUtilities(fileNames, elemNames, MyConfig.SdkDocVersion, DocLangCode, MyConfig.SdkLinksOnWeb, currentFileEncoding);
+                
+                try 
 				{
 					// determine temp file name
 					tempFileName = Path.GetTempFileName();
 					// Let the Documenter base class do it's thing.
 					MakeXmlFile(project, tempFileName);
+
+                    // For .NET 2.0 Framework, verify/correct ms-help URLs
+                    if (utilities.FrameworkVersion == "2.0")
+                        FixGenericUrls(tempFileName);
 
 					// Load the XML documentation into DOM and XPATH doc.
 					using (FileStream tempFile = File.Open(tempFileName, FileMode.Open, FileAccess.Read)) 
@@ -297,9 +395,6 @@ namespace NDoc.Documenter.Msdn
 
 				MakeFilenames();
 
-				string DocLangCode = Enum.GetName(typeof(SdkLanguage),MyConfig.SdkDocLanguage).Replace("_","-");
-				utilities = new MsdnXsltUtilities(fileNames, elemNames, MyConfig.SdkDocVersion, DocLangCode, MyConfig.SdkLinksOnWeb, currentFileEncoding);
-
 				OnDocBuildingStep(30, "Loading XSLT files...");
 
 				stylesheets = StyleSheetCollection.LoadStyleSheets(MyConfig.ExtensibilityStylesheet);
@@ -349,6 +444,30 @@ namespace NDoc.Documenter.Msdn
 
 					documentedNamespaces = new ArrayList();
 					MakeHtmlForAssemblies();
+
+                    // For .NET 2.0 Framework, verify/correct ms-help URLs
+                    if (utilities.FrameworkVersion == "2.0")
+                    {
+                        DateTime start = DateTime.Now;
+                        Debug.WriteLine("Verifying URLs");
+                        System.IO.DirectoryInfo di = new System.IO.DirectoryInfo(workspace.WorkingDirectory);
+                        FileInfo[] files = di.GetFiles();
+                        TimeSpan span;
+                        foreach (FileInfo file in files)
+                        {
+                            if (file.FullName.IndexOf(".html") > 0)
+                            {
+                                DateTime fileStart = DateTime.Now;
+                                Debug.WriteLine(file.Name);
+                                MsdnHtmlUtilitiesV20.UpdateHtmlHrefs(project, file.FullName, currentFileEncoding, this);
+                                span = DateTime.Now - fileStart;
+                                int ms = span.Milliseconds + span.Seconds * 1000;
+                                Debug.WriteLine(ms.ToString() + " msec.");
+                            }
+                        }
+                        span = DateTime.Now - start;
+                        Debug.WriteLine("HREF verification time: " + span.ToString());
+                    }
 
 					// close root book if applicable
 					if (rootPageFileName != null)
@@ -745,7 +864,7 @@ namespace NDoc.Documenter.Msdn
 
 		private void MakeHtmlForEnumerationOrDelegate(WhichType whichType, XmlNode typeNode)
 		{
-			string typeName = typeNode.Attributes["name"].Value;
+			string typeName = typeNode.Attributes["displayName"].Value;
 			string typeID = typeNode.Attributes["id"].Value;
 			string fileName = GetFilenameForType(typeNode);
 
@@ -760,7 +879,7 @@ namespace NDoc.Documenter.Msdn
 			WhichType whichType,
 			XmlNode typeNode)
 		{
-			string typeName = typeNode.Attributes["name"].Value;
+			string typeName = typeNode.Attributes["displayName"].Value;
 			string typeID = typeNode.Attributes["id"].Value;
 			string fileName = GetFilenameForType(typeNode);
 
@@ -812,18 +931,20 @@ namespace NDoc.Documenter.Msdn
 			XmlNodeList   constructorNodes;
 			string        constructorID;
 			string        typeName;
-			//string        typeID;
+            string        displayName;
+            //string        typeID;
 			string        fileName;
 
-			typeName = typeNode.Attributes["name"].Value;
-			//typeID = typeNode.Attributes["id"].Value;
+            typeName = typeNode.Attributes["name"].Value;
+            displayName = typeNode.Attributes["displayName"].Value;
+            //typeID = typeNode.Attributes["id"].Value;
 			constructorNodes = typeNode.SelectNodes("constructor[@contract!='Static']");
 
 			// If the constructor is overloaded then make an overload page.
 			if (constructorNodes.Count > 1)
 			{
 				fileName = GetFilenameForConstructors(typeNode);
-				htmlHelp.AddFileToContents(typeName + " Constructor", fileName);
+                htmlHelp.AddFileToContents(displayName + " Constructor", fileName);
 
 				htmlHelp.OpenBookInContents();
 
@@ -842,12 +963,12 @@ namespace NDoc.Documenter.Msdn
 				if (constructorNodes.Count > 1)
 				{
 					XmlNodeList   parameterNodes = xmlDocumentation.SelectNodes("/ndoc/assembly/module/namespace/" + lowerCaseTypeNames[whichType] + "[@name=\"" + typeName + "\"]/constructor[@id=\"" + constructorID + "\"]/parameter");
-					htmlHelp.AddFileToContents(typeName + " Constructor " + GetParamList(parameterNodes), fileName,
+                    htmlHelp.AddFileToContents(displayName + " Constructor " + GetParamList(parameterNodes), fileName,
 						HtmlHelpIcon.Page );
 				}
 				else
 				{
-					htmlHelp.AddFileToContents(typeName + " Constructor", fileName, HtmlHelpIcon.Page );
+                    htmlHelp.AddFileToContents(displayName + " Constructor", fileName, HtmlHelpIcon.Page);
 				}
 
 				XsltArgumentList arguments = new XsltArgumentList();
@@ -866,7 +987,7 @@ namespace NDoc.Documenter.Msdn
 				constructorID = staticConstructorNode.Attributes["id"].Value;
 				fileName = GetFilenameForConstructor(staticConstructorNode);
 
-				htmlHelp.AddFileToContents(typeName + " Static Constructor", fileName, HtmlHelpIcon.Page);
+                htmlHelp.AddFileToContents(displayName + " Static Constructor", fileName, HtmlHelpIcon.Page);
 
 				XsltArgumentList arguments = new XsltArgumentList();
 				arguments.AddParam("member-id", String.Empty, constructorID);
@@ -1314,13 +1435,13 @@ namespace NDoc.Documenter.Msdn
 				case "op_DivisionAssignment": return "Division Assignment Operator";
 				case "op_Explicit":
 					XmlNode parameterNode = operatorNode.SelectSingleNode("parameter");
-					string from = parameterNode.Attributes["type"].Value;
-					string to = operatorNode.Attributes["returnType"].Value;
+                    string from = parameterNode.Attributes["displayName"].Value;
+					string to = operatorNode.Attributes["displayReturnType"].Value;
 					return "Explicit " + StripNamespace(from) + " to " + StripNamespace(to) + " Conversion";
 				case "op_Implicit":
 					XmlNode parameterNode2 = operatorNode.SelectSingleNode("parameter");
-					string from2 = parameterNode2.Attributes["type"].Value;
-					string to2 = operatorNode.Attributes["returnType"].Value;
+                    string from2 = parameterNode2.Attributes["displayName"].Value;
+                    string to2 = operatorNode.Attributes["displayReturnType"].Value;
 					return "Implicit " + StripNamespace(from2) + " to " + StripNamespace(to2) + " Conversion";
 				default:
 					return "ERROR";
@@ -1444,11 +1565,12 @@ namespace NDoc.Documenter.Msdn
 
 			ExternalHtmlProvider htmlProvider = new ExternalHtmlProvider(MyConfig, filename);
 			StreamWriter streamWriter = null;
+            string fullPath = Path.Combine(workspace.WorkingDirectory, filename);
 
 			try
 			{
 				using (streamWriter =  new StreamWriter(
-					File.Open(Path.Combine(workspace.WorkingDirectory, filename), FileMode.Create),
+					File.Open(fullPath, FileMode.Create),
 					currentFileEncoding))
 				{
 					arguments.AddParam("ndoc-title", String.Empty, MyConfig.Title);
@@ -1465,6 +1587,7 @@ namespace NDoc.Documenter.Msdn
 
 					//reset overloads testing
 					utilities.Reset();
+                    MsdnHtmlUtilitiesV20.InitializeNamespaces(this.project);
 
 					XslTransform transform = stylesheets[transformName];
 
@@ -1472,6 +1595,7 @@ namespace NDoc.Documenter.Msdn
 				//Use overload that is now obsolete
 				transform.Transform(xpathDocument, arguments, streamWriter);
 #else           
+
 					//Use new overload so we don't get obsolete warnings - clean compile :)
 					transform.Transform(xpathDocument, arguments, streamWriter, null);
 #endif
@@ -1488,37 +1612,45 @@ namespace NDoc.Documenter.Msdn
 			htmlHelp.AddFileToProject(filename);
 		}
 
+        private static string GetLegalFileName(string filename)
+        {
+            if (filename.StartsWith("."))
+            {
+                Debug.WriteLine("Empty file\n");
+            }
+            return filename.Replace('<', '{').Replace('>', '}');
+        }
 		private string GetFilenameForNamespace(string namespaceName)
 		{
 			string fileName = namespaceName + ".html";
-			return fileName;
+			return GetLegalFileName(fileName);
 		}
 
 		private string GetFilenameForType(XmlNode typeNode)
 		{
 			string typeID = (string)typeNode.Attributes["id"].Value;
 			string fileName = typeID.Substring(2) + ".html";
-			return fileName;
+			return GetLegalFileName(fileName);
 		}
 
 		private string GetFilenameForTypeHierarchy(XmlNode typeNode)
 		{
 			string typeID = (string)typeNode.Attributes["id"].Value;
 			string fileName = typeID.Substring(2) + "Hierarchy.html";
-			return fileName;
+			return GetLegalFileName(fileName);
 		}
 		private string GetFilenameForTypeMembers(XmlNode typeNode)
 		{
 			string typeID = (string)typeNode.Attributes["id"].Value;
 			string fileName = typeID.Substring(2) + "Members.html";
-			return fileName;
+			return GetLegalFileName(fileName);
 		}
 
 		private string GetFilenameForConstructors(XmlNode typeNode)
 		{
 			string typeID = (string)typeNode.Attributes["id"].Value;
 			string fileName = typeID.Substring(2) + "Constructor.html";
-			return fileName;
+			return GetLegalFileName(fileName);
 		}
 
 		private string GetFilenameForConstructor(XmlNode constructorNode)
@@ -1539,14 +1671,14 @@ namespace NDoc.Documenter.Msdn
 
 			fileName += ".html";
 
-			return fileName;
+			return GetLegalFileName(fileName);
 		}
 
 		private string GetFilenameForFields(WhichType whichType, XmlNode typeNode)
 		{
 			string typeID = (string)typeNode.Attributes["id"].Value;
 			string fileName = typeID.Substring(2) + "Fields.html";
-			return fileName;
+			return GetLegalFileName(fileName);
 		}
 
 		private string GetFilenameForField(XmlNode fieldNode)
@@ -1554,14 +1686,14 @@ namespace NDoc.Documenter.Msdn
 			string fieldID = (string)fieldNode.Attributes["id"].Value;
 			string fileName = fieldID.Substring(2) + ".html";
 			fileName = fileName.Replace("#",".");
-			return fileName;
+			return GetLegalFileName(fileName);
 		}
 
 		private string GetFilenameForOperators(WhichType whichType, XmlNode typeNode)
 		{
 			string typeID = typeNode.Attributes["id"].Value;
 			string fileName = typeID.Substring(2) + "Operators.html";
-			return fileName;
+			return GetLegalFileName(fileName);
 		}
 
 		private string GetFilenameForOperatorsOverloads(XmlNode typeNode, XmlNode opNode)
@@ -1569,7 +1701,7 @@ namespace NDoc.Documenter.Msdn
 			string typeID = (string)typeNode.Attributes["id"].Value;
 			string opName = (string)opNode.Attributes["name"].Value;
 			string fileName = typeID.Substring(2) + "." + opName + "_overloads.html";
-			return fileName;
+			return GetLegalFileName(fileName);
 		}
 
 		private string GetFilenameForOperator(XmlNode operatorNode)
@@ -1592,14 +1724,14 @@ namespace NDoc.Documenter.Msdn
 			fileName += ".html";
 			fileName = fileName.Replace("#",".");
 
-			return fileName;
+			return GetLegalFileName(fileName);
 		}
 
 		private string GetFilenameForEvents(WhichType whichType, XmlNode typeNode)
 		{
 			string typeID = (string)typeNode.Attributes["id"].Value;
 			string fileName = typeID.Substring(2) + "Events.html";
-			return fileName;
+			return GetLegalFileName(fileName);
 		}
 
 		private string GetFilenameForEvent(XmlNode eventNode)
@@ -1607,14 +1739,14 @@ namespace NDoc.Documenter.Msdn
 			string eventID = (string)eventNode.Attributes["id"].Value;
 			string fileName = eventID.Substring(2) + ".html";
 			fileName = fileName.Replace("#",".");
-			return fileName;
+			return GetLegalFileName(fileName);
 		}
 
 		private string GetFilenameForProperties(WhichType whichType, XmlNode typeNode)
 		{
 			string typeID = (string)typeNode.Attributes["id"].Value;
 			string fileName = typeID.Substring(2) + "Properties.html";
-			return fileName;
+			return GetLegalFileName(fileName);
 		}
 
 		private string GetFilenameForPropertyOverloads(XmlNode typeNode, XmlNode propertyNode)
@@ -1623,7 +1755,7 @@ namespace NDoc.Documenter.Msdn
 			string propertyName = (string)propertyNode.Attributes["name"].Value;
 			string fileName = typeID.Substring(2) + propertyName + ".html";
 			fileName = fileName.Replace("#",".");
-			return fileName;
+			return GetLegalFileName(fileName);
 		}
 
 		private string GetFilenameForProperty(XmlNode propertyNode)
@@ -1646,14 +1778,14 @@ namespace NDoc.Documenter.Msdn
 			fileName += ".html";
 			fileName = fileName.Replace("#",".");
 
-			return fileName;
+			return GetLegalFileName(fileName);
 		}
 
 		private string GetFilenameForMethods(WhichType whichType, XmlNode typeNode)
 		{
 			string typeID = (string)typeNode.Attributes["id"].Value;
 			string fileName = typeID.Substring(2) + "Methods.html";
-			return fileName;
+			return GetLegalFileName(fileName);
 		}
 
 		private string GetFilenameForMethodOverloads(XmlNode typeNode, XmlNode methodNode)
@@ -1661,7 +1793,7 @@ namespace NDoc.Documenter.Msdn
 			string typeID = (string)typeNode.Attributes["id"].Value;
 			string methodName = (string)methodNode.Attributes["name"].Value;
 			string fileName = typeID.Substring(2) + "." + methodName + "_overloads.html";
-			return fileName;
+			return GetLegalFileName(fileName);
 		}
 
 		private string GetFilenameForMethod(XmlNode methodNode)
@@ -1685,7 +1817,7 @@ namespace NDoc.Documenter.Msdn
 
 			fileName += ".html";
 
-			return fileName;
+			return GetLegalFileName(fileName);
 		}
 
 		/// <summary>

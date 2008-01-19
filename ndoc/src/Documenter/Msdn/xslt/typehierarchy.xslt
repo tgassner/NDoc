@@ -40,9 +40,7 @@
 								<xsl:with-param name="type-name" select="$list[$last]/@type" />
 							</xsl:call-template>
 						</xsl:attribute>
-						<xsl:call-template name="get-datatype">
-							<xsl:with-param name="datatype" select="$list[$last]/@type" />
-						</xsl:call-template>
+						<xsl:value-of select="$list[$last]/@displayName" />
 					</a>
 				</xsl:when>
 				<xsl:otherwise>
@@ -56,15 +54,11 @@
 										<xsl:with-param name="id" select="$list[$last]/@id" />
 									</xsl:call-template>
 								</xsl:attribute>
-								<xsl:call-template name="get-datatype">
-									<xsl:with-param name="datatype" select="$list[$last]/@type" />
-								</xsl:call-template>
+								<xsl:value-of select="$list[$last]/@displayName" />
 							</a>
 						</xsl:when>
 						<xsl:otherwise>
-							<xsl:call-template name="get-datatype">
-								<xsl:with-param name="datatype" select="$list[$last]/@type" />
-							</xsl:call-template>
+							<xsl:value-of select="$list[$last]/@displayName" />
 						</xsl:otherwise>
 					</xsl:choose>
 				</xsl:otherwise>
@@ -99,11 +93,11 @@
 		<xsl:param name="type" />
 		<html dir="LTR">
 			<xsl:call-template name="html-head">
-				<xsl:with-param name="title" select="concat(@name, ' Hierarchy')" />
+				<xsl:with-param name="title" select="concat(@displayName, ' Hierarchy')" />
 			</xsl:call-template>
 			<body topmargin="0" id="bodyID" class="dtBODY">
 				<xsl:call-template name="title-row">
-					<xsl:with-param name="type-name" select="concat(@name, ' Hierarchy')" />
+					<xsl:with-param name="type-name" select="concat(@displayName, ' Hierarchy')" />
 				</xsl:call-template>
 				<div id="nstext" valign="bottom">
 					<p>
@@ -124,9 +118,7 @@
 													<xsl:with-param name="id" select="@id" />
 												</xsl:call-template>
 											</xsl:attribute>
-											<xsl:call-template name="get-datatype">
-												<xsl:with-param name="datatype" select="substring-after(@id, ':' )" />
-											</xsl:call-template>
+											<xsl:value-of select="@displayName" />
 										</a>
 									</xsl:for-each>
 								</xsl:if>
@@ -148,7 +140,7 @@
 									<xsl:with-param name="count" select="$typeIndent+1" />
 								</xsl:call-template>
 								<b>
-									<xsl:value-of select="@name" />
+									<xsl:value-of select="@displayName" />
 								</b>
 								<xsl:if test="derivedBy">
 									<xsl:variable name="derivedTypeIndent" select="$typeIndent+2" />
@@ -163,9 +155,7 @@
 													<xsl:with-param name="id" select="@id" />
 												</xsl:call-template>
 											</xsl:attribute>
-											<xsl:call-template name="get-datatype">
-												<xsl:with-param name="datatype" select="substring-after(@id, ':' )" />
-											</xsl:call-template>
+											<xsl:value-of select="@displayName" />
 										</a>
 									</xsl:for-each>
 								</xsl:if>
@@ -176,7 +166,7 @@
 						<xsl:with-param name="page" select="'typehierarchy'" />
 					</xsl:call-template>
 					<xsl:call-template name="footer-row">
-						<xsl:with-param name="type-name" select="concat(@name, ' Hierarchy')" />
+						<xsl:with-param name="type-name" select="concat(@displayName, ' Hierarchy')" />
 					</xsl:call-template>
 				</div>
 			</body>

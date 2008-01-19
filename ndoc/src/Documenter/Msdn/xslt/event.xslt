@@ -16,12 +16,12 @@
 	<xsl:template match="event">
 		<html dir="LTR">
 			<xsl:call-template name="html-head">
-				<xsl:with-param name="title" select="concat(../@name, '.', @name, ' Event')" />
+				<xsl:with-param name="title" select="concat(../@displayName, '.', @displayName, ' Event')" />
 			</xsl:call-template>
 			<body id="bodyID" class="dtBODY">
 				<xsl:call-template name="title-row">
 					<xsl:with-param name="type-name">
-						<xsl:value-of select="../@name" />.<xsl:value-of select="@name" /> Event
+						<xsl:value-of select="../@displayName" />.<xsl:value-of select="@displayName" /> Event
 					</xsl:with-param>
 				</xsl:call-template>
 				<div id="nstext">
@@ -85,21 +85,21 @@
 						<object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e" viewastext="true" style="display: none;">
 							<xsl:element name="param">
 								<xsl:attribute name="name">Keyword</xsl:attribute>
-								<xsl:attribute name="value"><xsl:value-of select='@name' /> event</xsl:attribute>
+								<xsl:attribute name="value"><xsl:value-of select='@displayName' /> event</xsl:attribute>
 							</xsl:element>
 							<xsl:element name="param">
 								<xsl:attribute name="name">Keyword</xsl:attribute>
-								<xsl:attribute name="value"><xsl:value-of select='@name' /> event, <xsl:value-of select='../@name' /> class</xsl:attribute>
+								<xsl:attribute name="value"><xsl:value-of select='@displayName' /> event, <xsl:value-of select='../@displayName' /> class</xsl:attribute>
 							</xsl:element>
 							<xsl:element name="param">
 								<xsl:attribute name="name">Keyword</xsl:attribute>
-								<xsl:attribute name="value"><xsl:value-of select='../@name' />.<xsl:value-of select='@name' /> event</xsl:attribute>
+								<xsl:attribute name="value"><xsl:value-of select='../@displayName' />.<xsl:value-of select='@displayName' /> event</xsl:attribute>
 							</xsl:element>
 						</object>
 					</xsl:if>
 					<xsl:call-template name="footer-row">
 						<xsl:with-param name="type-name">
-							<xsl:value-of select="../@name" />.<xsl:value-of select="@name" /> Event
+							<xsl:value-of select="../@displayName" />.<xsl:value-of select="@displayName" /> Event
 						</xsl:with-param>
 					</xsl:call-template>
 				</div>

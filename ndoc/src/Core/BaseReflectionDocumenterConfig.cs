@@ -620,13 +620,13 @@ namespace NDoc.Core.Reflection
 			}
 		}
 
-		SdkVersion _SdkDocVersion = SdkVersion.SDK_v1_1;
+		SdkVersion _SdkDocVersion = SdkVersion.SDK_v2_0;
 
 		/// <summary>Gets or sets the LinkToSdkDocVersion property.</summary>
 		/// <remarks>Specifies to which version of the .NET Framework SDK documentation the links to system types will be pointing.</remarks>
 		[Category("Documentation Main Settings")]
 		[Description("Specifies to which version of the .NET Framework SDK documentation the links to system types will be pointing.")]
-		[DefaultValue(SdkVersion.SDK_v1_1)]
+		[DefaultValue(SdkVersion.SDK_v2_0)]
 		[System.ComponentModel.TypeConverter(typeof(EnumDescriptionConverter))]
 		public SdkVersion SdkDocVersion
 		{
@@ -905,7 +905,11 @@ namespace NDoc.Core.Reflection
 
 		/// <summary>The SDK version 1.1.</summary>
 		[Description(".Net Version 1.1")]
-		SDK_v1_1, 
+		SDK_v1_1,
+
+        /// <summary>The SDK version 2.0.</summary>
+        [Description(".Net Version 2.0")]
+        SDK_v2_0, 
 	}
 
 	/// <summary>

@@ -45,7 +45,11 @@
 				</xsl:otherwise>
 			</xsl:choose>
 		</xsl:variable>
-		<xsl:call-template name="get-link-for-type">
+    <!-- JLD: For generics types the class names here does not seem to 
+    be what is expected, the links are always broken; use the following to debug:
+			<xsl:with-param name="link-text" select="concat($link-text, ': ' ,$basic-type-name) " />
+    -->
+    <xsl:call-template name="get-link-for-type">
 			<xsl:with-param name="type" select="concat( 'T:', $basic-type-name )" />
 			<xsl:with-param name="link-text" select="$link-text" />
 		</xsl:call-template>

@@ -35,6 +35,8 @@ namespace NDoc.ConsoleApplication
 		private static bool verbose;
 		private static DateTime startDateTime;
 
+        // Fix from David Smith said, March 30, 2006 @ 2:38 pm
+        [STAThread]
 		public static int Main(string[] args)
 		{
 			try

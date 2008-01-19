@@ -203,14 +203,15 @@
 					</xsl:call-template>
 				</xsl:when>
 				<xsl:otherwise>
-					<xsl:value-of select="@name" />
+					<xsl:value-of select="@displayName" />
 				</xsl:otherwise>
 			</xsl:choose>
 			<xsl:call-template name="return-type">
 				<xsl:with-param name="include-type-links" select="$include-type-links" />
 				<xsl:with-param name="lang" select="'Visual Basic'" />
 				<xsl:with-param name="type" select="@type" />
-			</xsl:call-template>
+        <xsl:with-param name="displayType" select="@displayType" />
+      </xsl:call-template>
 			<xsl:call-template name="member-implements" />
 			<xsl:text>&#10;</xsl:text>
 		</b>
@@ -235,8 +236,9 @@
 			<xsl:call-template name="return-type">
 				<xsl:with-param name="include-type-links" select="$include-type-links" />
 				<xsl:with-param name="lang" select="'C#'" />
-				<xsl:with-param name="type" select="@type" />
-			</xsl:call-template>
+        <xsl:with-param name="type" select="@type" />
+        <xsl:with-param name="displayType" select="@displayName" />
+      </xsl:call-template>
 			<xsl:choose>
 				<xsl:when test="parameter">
 					<xsl:text>this</xsl:text>
@@ -247,7 +249,7 @@
 					</xsl:call-template>
 				</xsl:when>
 				<xsl:otherwise>
-					<xsl:value-of select="@name" />
+					<xsl:value-of select="@displayName" />
 				</xsl:otherwise>
 			</xsl:choose>
 			<xsl:text>&#160;{&#160;</xsl:text>
@@ -329,10 +331,11 @@
 		<xsl:call-template name="return-type">
 			<xsl:with-param name="include-type-links" select="$include-type-links" />
 			<xsl:with-param name="lang" select="'C++'" />
-			<xsl:with-param name="type" select="@type" />
-		</xsl:call-template>
+      <xsl:with-param name="type" select="@type" />
+      <xsl:with-param name="displayType" select="@displayType" />
+    </xsl:call-template>
 		<xsl:text>get_</xsl:text>
-		<xsl:value-of select="@name" />
+		<xsl:value-of select="@displayName" />
 		<xsl:choose>
 			<xsl:when test="parameter">
 				<xsl:text>(</xsl:text>
@@ -366,7 +369,7 @@
 			<xsl:with-param name="type" select="'System.Void'" />
 		</xsl:call-template>
 		<xsl:text>set_</xsl:text>
-		<xsl:value-of select="@name" />
+		<xsl:value-of select="@displayName" />
 		<xsl:text>(</xsl:text>
 		<xsl:call-template name="cpp-indexer-params">
 			<xsl:with-param name="include-type-links" select="$include-type-links" />
@@ -380,8 +383,9 @@
 		<xsl:call-template name="return-type">
 			<xsl:with-param name="include-type-links" select="$include-type-links" />
 			<xsl:with-param name="lang" select="'C++'" />
-			<xsl:with-param name="type" select="@type" />
-		</xsl:call-template>
+      <xsl:with-param name="type" select="@type" />
+      <xsl:with-param name="displayType" select="@displayName" />
+    </xsl:call-template>
 		<xsl:if test="contains(@type, '[')">
 			<xsl:text>&#160;__gc[]</xsl:text>
 		</xsl:if>
@@ -427,7 +431,7 @@
 		<xsl:if test="@get='true'">
 			<I>returnValue</I>
 			<B> = </B>
-			<I><xsl:value-of select="../@name" />Object</I>
+			<I><xsl:value-of select="../@displayName" />Object</I>
 			<B>.Item( </B>
 			<xsl:call-template name="js-indexer-params" />
 			<B> );</B>
@@ -436,7 +440,7 @@
 			<xsl:if test="@get='true'">
 				<xsl:text>&#10;</xsl:text>
 			</xsl:if>
-			<I><xsl:value-of select="../@name" />Object</I>
+			<I><xsl:value-of select="../@displayName" />Object</I>
 			<B>.Item( </B>
 			<xsl:call-template name="js-indexer-params" />
 			<B> ) = newValue;</B>
@@ -447,7 +451,7 @@
 		<xsl:if test="@get='true'">
 			<I>returnValue</I>
 			<B> = </B>
-			<I><xsl:value-of select="../@name" />Object</I>
+			<I><xsl:value-of select="../@displayName" />Object</I>
 			<B>( </B>
 			<xsl:call-template name="js-indexer-params" />
 			<B> );</B>
@@ -456,7 +460,7 @@
 			<xsl:if test="@get='true'">
 				<xsl:text>&#10;</xsl:text>
 			</xsl:if>
-			<I><xsl:value-of select="../@name" />Object</I>
+			<I><xsl:value-of select="../@displayName" />Object</I>
 			<B>( </B>
 			<xsl:call-template name="js-indexer-params" />
 			<B> ) = newValue;</B>
@@ -466,7 +470,7 @@
 	<xsl:template name="js-indexer-params">
 		<xsl:for-each select="parameter">
 			<i>
-				<xsl:value-of select="@name" />
+				<xsl:value-of select="@displayName" />
 			</i>
 			<xsl:if test="position()!= last()">
 				<xsl:text>,&#160;</xsl:text>
@@ -509,13 +513,14 @@
 		</xsl:call-template>
 		<xsl:text>function&#160;</xsl:text>
 		<xsl:text>get&#160;</xsl:text>
-		<xsl:value-of select="@name" />
+		<xsl:value-of select="@displayName" />
 		<xsl:text>()&#160;</xsl:text>
 		<xsl:call-template name="return-type">
 			<xsl:with-param name="include-type-links" select="$include-type-links" />
 			<xsl:with-param name="lang" select="'JScript'" />
-			<xsl:with-param name="type" select="@type" />
-		</xsl:call-template>
+      <xsl:with-param name="type" select="@type" />
+      <xsl:with-param name="displayType" select="@displayName" />
+    </xsl:call-template>
 	</xsl:template>
 	<!-- -->
 	<xsl:template name="js-property-setter">
@@ -524,11 +529,11 @@
 			<xsl:with-param name="lang" select="'JScript'" />
 		</xsl:call-template>
 		<xsl:text>function&#160;set&#160;</xsl:text>
-		<xsl:value-of select="@name" />
+		<xsl:value-of select="@displayName" />
 		<xsl:text>(</xsl:text>
 		<xsl:variable name="link-type">
 			<xsl:call-template name="get-datatype">
-				<xsl:with-param name="datatype" select="@type" />
+				<xsl:with-param name="datatype" select="@displayName" />
 				<xsl:with-param name="lang" select="'JScript'" />
 			</xsl:call-template>
 		</xsl:variable>
@@ -716,16 +721,16 @@
 		<xsl:param name="dir" />
 		<xsl:choose>
 			<xsl:when test="$lang='Visual Basic'">
-				<xsl:value-of select="@name" />
+				<xsl:value-of select="@displayName" />
 			</xsl:when>
 			<xsl:when test="$lang='C#'">
-				<xsl:value-of select="@name" />
+				<xsl:value-of select="@displayName" />
 			</xsl:when>
-			<xsl:when test="$lang='C++'"><xsl:value-of select="$dir" />_<xsl:value-of select="@name" /></xsl:when>
+			<xsl:when test="$lang='C++'"><xsl:value-of select="$dir" />_<xsl:value-of select="@displayName" /></xsl:when>
 			<xsl:when test="$lang='JScript'">
 				<xsl:value-of select="$dir" />
 				<xsl:text>&#160;</xsl:text>
-				<xsl:value-of select="@name" />
+				<xsl:value-of select="@displayName" />
 			</xsl:when>
 		</xsl:choose>
 	</xsl:template>
@@ -1021,7 +1026,7 @@
 	<xsl:template match="property" mode="pre-syntax">
 		<xsl:if test="parameter">
 			<P><SPAN class="lang">[C#]</SPAN> In C#, this property is the indexer for the <B>
-					<xsl:value-of select="../@name" />
+					<xsl:value-of select="../@displayName" />
 				</B> class.</P>
 		</xsl:if>
 	</xsl:template>

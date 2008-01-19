@@ -396,7 +396,12 @@ namespace NDoc.Documenter.NativeHtmlHelp2.Engine
 		/// <returns>a filename</returns>
 		public string GetLocalCRef(string cref)
 		{
-			return _fileMapper[cref];
+            string s = _fileMapper[cref];
+            if (s == null)
+            {
+                return "";
+            }
+            return s;
 		}
 
 		/// <summary>
@@ -445,7 +450,12 @@ namespace NDoc.Documenter.NativeHtmlHelp2.Engine
 				case "N:" : // Namespace
 					return "frlrf" + cref.Substring(2).Replace(".", "");
 				case "T:" : // Type: class, interface, struct, enum, delegate
-					return "frlrf" + cref.Substring(2).Replace(".", "").Replace("*", "") + "ClassTopic";
+                    // TODO: support 2.0 links/JLD
+                    //if (frameworkVersion == "2.0")
+                    //{
+                    //    return sdkDocBaseUrl + "T_" + cref.Substring(2).Replace(".", "_").Replace("*", "");
+                    //}
+                    return "frlrf" + cref.Substring(2).Replace(".", "").Replace("*", "") + "ClassTopic";
 				case "F:" : // Field
 				case "P:" : // Property
 				case "M:" : // Method

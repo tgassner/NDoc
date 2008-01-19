@@ -123,6 +123,11 @@ namespace NDoc.Documenter.NativeHtmlHelp2.Engine
 				NSName = "ms-help://MS.NETFrameworkSDKv1.1";
 				FrameworkVersion="1.1";
 			}
+            else if (config.SdkDocVersion == SdkVersion.SDK_v2_0)
+            {
+                NSName = "ms-help://MS.NETFrameworkSDKv2.0";
+                FrameworkVersion = "2.0";
+            }
 			else
 				Debug.Assert( false );		// remind ourselves to update this list when new framework versions are supported
 

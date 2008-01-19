@@ -481,7 +481,7 @@ namespace NDoc.Documenter.Msdn
 				{
 					Trace.WriteLine("WARNING: " + base.DocumenterInfo.Name + " Configuration - value 'MsdnOnline' of property 'LinkSdkDocVersion' is OBSOLETE. Please use new option 'SdkLinksOnWeb'\n");
 					Project.SuspendDirtyCheck=false;
-					FailureMessages += base.ReadProperty("SdkDocVersion", "SDK_v1_1");
+					FailureMessages += base.ReadProperty("SdkDocVersion", "SDK_v2_0");
 					FailureMessages += base.ReadProperty("SdkLinksOnWeb", "True");
 					Project.SuspendDirtyCheck=true;
 				}

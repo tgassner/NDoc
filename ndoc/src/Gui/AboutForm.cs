@@ -278,7 +278,7 @@ namespace NDoc.Gui
 			this.developersLabel.Text = "Jason Diamond, Jean-Claude Manoli, Kral Ferch, Carlos Guzmán Álvarez, Gert Driese" +
 				"n, Heath Stewart, Laurent Domenech, Jerome Mathieu, Keith Hill, Michael Poettgen" +
 				", Pascal Bourque, Ryan Seghers, Steve Van Esch, Thong (Tum) Nguyen, Wolfgang Bau" +
-				"er";
+				"er, Ken Kohler";
 			// 
 			// label1
 			// 

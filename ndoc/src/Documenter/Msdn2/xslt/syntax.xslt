@@ -59,7 +59,7 @@
 			<xsl:apply-templates select="." mode="keyword">
 				<xsl:with-param name="lang" select="$lang" />
 			</xsl:apply-templates>
-			<xsl:value-of select="@name" />
+			<xsl:value-of select="@displayName" />
 			<xsl:if test="@baseType!=''">
 				<xsl:apply-templates select="." mode="enum-type">
 					<xsl:with-param name="lang" select="$lang" />
@@ -123,7 +123,7 @@
 				<xsl:apply-templates select="." mode="keyword">
 					<xsl:with-param name="lang" select="$lang" />
 				</xsl:apply-templates>
-				<xsl:value-of select="@name" />
+				<xsl:value-of select="@displayName" />
 				<xsl:apply-templates select="." mode="derivation">
 					<xsl:with-param name="lang" select="$lang" />
 				</xsl:apply-templates>
@@ -151,7 +151,7 @@
 				</xsl:apply-templates>
 				<xsl:variable name="link-type">
 					<xsl:call-template name="get-datatype">
-						<xsl:with-param name="datatype" select="@returnType" />
+						<xsl:with-param name="datatype" select="@displayReturnType" />
 						<xsl:with-param name="lang" select="$lang" />
 					</xsl:call-template>
 				</xsl:variable>
@@ -162,7 +162,7 @@
 					</xsl:call-template>
 				</xsl:if>
 				<xsl:text>&#160;</xsl:text>
-				<xsl:value-of select="@name" />
+				<xsl:value-of select="@displayName" />
 				<xsl:call-template name="parameters">
 					<xsl:with-param name="include-type-links" select="true()" />
 					<xsl:with-param name="lang" select="$lang" />
@@ -176,7 +176,8 @@
 						<xsl:with-param name="lang" select="$lang" />
 						<xsl:with-param name="include-type-links" select="true()" />
 						<xsl:with-param name="type" select="@returnType" />
-					</xsl:call-template>
+            <xsl:with-param name="displayType" select="@displayReturnType" />
+          </xsl:call-template>
 				</xsl:if>
 				<xsl:text>&#10;</xsl:text>
 			</b>
@@ -225,7 +226,7 @@
 			<xsl:with-param name="lang" select="$lang" />
 		</xsl:call-template>
 		<xsl:if test="$lang!='Visual Basic'">
-			<xsl:value-of select="../@name" />
+			<xsl:value-of select="../@displayName" />
 		</xsl:if>
 		<xsl:call-template name="parameters">
 			<xsl:with-param name="include-type-links" select="$include-type-links" />
@@ -275,7 +276,7 @@
 			<!-- special 'destructor' syntax for Finalize() in c# and c++ -->
 			<xsl:when test="@name='Finalize' and not(Parameters) and ($lang = 'C#' or $lang='C++')">
 				<xsl:text>~</xsl:text>
-				<xsl:value-of select="../@name" />
+				<xsl:value-of select="../@displayName" />
 				<xsl:text>();</xsl:text>
 			</xsl:when>
 			<xsl:otherwise>
@@ -286,7 +287,8 @@
 					<xsl:with-param name="include-type-links" select="$include-type-links" />
 					<xsl:with-param name="lang" select="$lang" />
 				</xsl:call-template>
-				<xsl:value-of select="@name" />
+        <!-- Fix from Jan Bergstrom said March 16, 2006 @ 9:07 pm -->
+        <xsl:value-of select="@name" />
 				<xsl:call-template name="parameters">
 					<xsl:with-param name="include-type-links" select="$include-type-links" />
 					<xsl:with-param name="lang" select="$lang" />
@@ -354,7 +356,8 @@
 				<xsl:with-param name="include-type-links" select="$include-type-links" />
 				<xsl:with-param name="lang" select="$lang" />
 				<xsl:with-param name="type" select="@returnType" />
-			</xsl:call-template>
+        <xsl:with-param name="displayType" select="@displayReturnType" />
+      </xsl:call-template>
 		</xsl:if>
 	</xsl:template>
 	<!-- -->
@@ -366,7 +369,8 @@
 				<xsl:with-param name="include-type-links" select="$include-type-links" />
 				<xsl:with-param name="lang" select="$lang" />
 				<xsl:with-param name="type" select="@returnType" />
-			</xsl:call-template>
+        <xsl:with-param name="displayType" select="@displayReturnType" />
+      </xsl:call-template>
 		</xsl:if>
 		<xsl:if test="$lang='C++' and contains(@returnType, '[')">
 			<xsl:text>&#160;&#160;__gc[]</xsl:text>
@@ -382,7 +386,7 @@
 			<xsl:for-each select="implements[not(@inherited)]">
 				<xsl:call-template name="get-link-for-type-name">
 					<xsl:with-param name="type-name" select="substring-after(@id,':')" />
-					<xsl:with-param name="link-text" select="concat(@interface,'.',@name)" />
+					<xsl:with-param name="link-text" select="concat(@interface,'.',@displayName)" />
 				</xsl:call-template>
 				<xsl:if test="position()!=last()">
 					<xsl:text>, </xsl:text>
@@ -394,10 +398,11 @@
 	<xsl:template name="return-type">
 		<xsl:param name="lang" />
 		<xsl:param name="include-type-links" />
-		<xsl:param name="type" />
-		<xsl:variable name="link-type">
+    <xsl:param name="type" />
+    <xsl:param name="displayType" select="$type" />
+    <xsl:variable name="link-type">
 			<xsl:call-template name="get-datatype">
-				<xsl:with-param name="datatype" select="$type" />
+				<xsl:with-param name="datatype" select="$displayType" />
 				<xsl:with-param name="lang" select="$lang" />
 			</xsl:call-template>
 		</xsl:variable>
@@ -501,24 +506,25 @@
 			</xsl:apply-templates>
 			<xsl:variable name="link-type">
 				<xsl:call-template name="get-datatype">
-					<xsl:with-param name="datatype" select="@type" />
+					<xsl:with-param name="datatype" select="@displayName" />
 					<xsl:with-param name="lang" select="$lang" />
 				</xsl:call-template>
 			</xsl:variable>
 			<xsl:if test="$lang != 'Visual Basic' and $lang != 'JScript'">
 				<xsl:call-template name="get-link-for-type-name">
-					<xsl:with-param name="type-name" select="@type" />
+					<xsl:with-param name="type-name" select="@displayName" />
 					<xsl:with-param name="link-text" select="$link-type" />
 				</xsl:call-template>
 				<xsl:text>&#160;</xsl:text>
 			</xsl:if>
-			<xsl:value-of select="@name" />
+			<xsl:value-of select="@displayName" />
 			<xsl:if test="$lang = 'Visual Basic' or $lang = 'JScript'">
 				<xsl:call-template name="return-type">
 					<xsl:with-param name="lang" select="$lang" />
 					<xsl:with-param name="include-type-links" select="true()" />
-					<xsl:with-param name="type" select="@type" />
-				</xsl:call-template>
+          <xsl:with-param name="type" select="@type" />
+          <xsl:with-param name="displayType" select="@displayName" />
+        </xsl:call-template>
 			</xsl:if>
 			<xsl:if test="$lang='C++' and contains(@type, '[')">
 				<xsl:text>&#160;__gc[]</xsl:text>
@@ -566,23 +572,24 @@
 				</xsl:apply-templates>
 				<xsl:variable name="link-type">
 					<xsl:call-template name="get-datatype">
-						<xsl:with-param name="datatype" select="@type" />
+						<xsl:with-param name="datatype" select="@displayName" />
 						<xsl:with-param name="lang" select="$lang" />
 					</xsl:call-template>
 				</xsl:variable>
 				<xsl:if test="$lang != 'Visual Basic'">
 					<xsl:call-template name="get-link-for-type-name">
-						<xsl:with-param name="type-name" select="@type" />
+						<xsl:with-param name="type-name" select="@displayName" />
 						<xsl:with-param name="link-text" select="$link-type" />
 					</xsl:call-template>
 					<xsl:text>&#160;</xsl:text>
 				</xsl:if>
-				<xsl:value-of select="@name" />
+				<xsl:value-of select="@displayName" />
 				<xsl:if test="$lang = 'Visual Basic'">
 					<xsl:call-template name="return-type">
 						<xsl:with-param name="lang" select="$lang" />
 						<xsl:with-param name="include-type-links" select="true()" />
-						<xsl:with-param name="type" select="@type" />
+            <xsl:with-param name="displayType" select="@displayName" />
+            <xsl:with-param name="type" select="@type" />
 					</xsl:call-template>
 					<xsl:text>&#160;</xsl:text>
 				</xsl:if>
@@ -636,7 +643,7 @@
 		<xsl:variable name="link-text">
 			<xsl:call-template name="operator-name">
 				<xsl:with-param name="name">
-					<xsl:value-of select="@name" />
+					<xsl:value-of select="@displayName" />
 				</xsl:with-param>
 			</xsl:call-template>
 			<xsl:text>&#160;</xsl:text>
@@ -679,7 +686,7 @@
 					</xsl:call-template>
 					<xsl:variable name="link-type">
 						<xsl:call-template name="get-datatype">
-							<xsl:with-param name="datatype" select="@returnType" />
+							<xsl:with-param name="datatype" select="@displayReturnType" />
 							<xsl:with-param name="lang" select="$lang" />
 						</xsl:call-template>
 					</xsl:variable>
@@ -705,7 +712,7 @@
 							</xsl:call-template>
 						</xsl:when>
 						<xsl:otherwise>
-							<xsl:value-of select="@name" />
+							<xsl:value-of select="@displayName" />
 						</xsl:otherwise>
 					</xsl:choose>
 					<xsl:call-template name="parameters">
@@ -720,7 +727,7 @@
 				</b>
 			</xsl:when>
 			<xsl:when test="$lang = 'Visual Basic'">
-				<I>returnValue</I> = <B><xsl:value-of select="../@name" />.<xsl:value-of select="@name" />
+				<I>returnValue</I> = <B><xsl:value-of select="../@displayName" />.<xsl:value-of select="@displayName" />
 				<xsl:text>(</xsl:text></B>
 				<xsl:for-each select="parameter">
 					<i>
@@ -791,7 +798,7 @@
 			<xsl:when test="@name = 'op_Explicit'">
 				<xsl:variable name="link-type">
 					<xsl:call-template name="get-datatype">
-						<xsl:with-param name="datatype" select="@returnType" />
+						<xsl:with-param name="datatype" select="@displayReturnType" />
 						<xsl:with-param name="lang" select="'JScript'" />
 					</xsl:call-template>
 				</xsl:variable>
@@ -832,12 +839,12 @@
 					<xsl:text>&#10;&#160;&#160;&#160;&#160;Inherits&#160;</xsl:text>
 					<xsl:variable name="link-type">
 						<xsl:call-template name="get-datatype">
-							<xsl:with-param name="datatype" select="@baseType" />
+							<xsl:with-param name="datatype" select="./base/@displayName" />
 							<xsl:with-param name="lang" select="$lang" />
 						</xsl:call-template>
 					</xsl:variable>
 					<xsl:call-template name="get-link-for-type-name">
-						<xsl:with-param name="type-name" select="./base/@type" />
+						<xsl:with-param name="type-name" select="concat(./base/@namespace,'.',./base/@name)" />
 						<xsl:with-param name="link-text" select="$link-type" />
 					</xsl:call-template>
 				</xsl:if>
@@ -846,12 +853,12 @@
 					<xsl:for-each select="implements[not(@inherited)]">
 						<xsl:variable name="link-type">
 							<xsl:call-template name="get-datatype">
-								<xsl:with-param name="datatype" select="@type" />
+								<xsl:with-param name="datatype" select="@displayName" />
 								<xsl:with-param name="lang" select="$lang" />
 							</xsl:call-template>
 						</xsl:variable>
 						<xsl:call-template name="get-link-for-type-name">
-							<xsl:with-param name="type-name" select="@type" />
+							<xsl:with-param name="type-name" select="@displayName" />
 							<xsl:with-param name="link-text" select="$link-type" />
 						</xsl:call-template>
 						<xsl:if test="position()!=last()">
@@ -868,12 +875,12 @@
 					<xsl:if test="@baseType!=''">
 						<xsl:variable name="link-type">
 							<xsl:call-template name="get-datatype">
-								<xsl:with-param name="datatype" select="@baseType" />
+								<xsl:with-param name="datatype" select="./base/@displayName" />
 								<xsl:with-param name="lang" select="$lang" />
 							</xsl:call-template>
 						</xsl:variable>
 						<xsl:call-template name="get-link-for-type-name">
-							<xsl:with-param name="type-name" select="./base/@type" />
+							<xsl:with-param name="type-name" select="concat(./base/@namespace,'.',./base/@name)" />
 							<xsl:with-param name="link-text" select="$link-type" />
 						</xsl:call-template>
 						<xsl:if test="implements[not(@inherited)]">
@@ -883,12 +890,12 @@
 					<xsl:for-each select="implements[not(@inherited)]">
 						<xsl:variable name="link-type">
 							<xsl:call-template name="get-datatype">
-								<xsl:with-param name="datatype" select="@type" />
+								<xsl:with-param name="datatype" select="@displayName" />
 								<xsl:with-param name="lang" select="$lang" />
 							</xsl:call-template>
 						</xsl:variable>
 						<xsl:call-template name="get-link-for-type-name">
-							<xsl:with-param name="type-name" select="@type" />
+							<xsl:with-param name="type-name" select="@displayName" />
 							<xsl:with-param name="link-text" select="$link-type" />
 						</xsl:call-template>
 						<xsl:if test="position()!=last()">
@@ -898,6 +905,9 @@
 				</xsl:if>
 			</xsl:otherwise>
 		</xsl:choose>
+    <xsl:call-template name="generics-constraints">
+      <xsl:with-param name="version">long</xsl:with-param>
+    </xsl:call-template>
 	</xsl:template>
 	<!-- -->
 	<xsl:template name="property-syntax">
@@ -969,7 +979,7 @@
 				<xsl:if test="$include-type-links=true()">
 					<xsl:if test="$lang = 'Visual Basic'">
 						<i>
-							<xsl:value-of select="@name" />
+							<xsl:value-of select="@displayName" />
 						</i>
 						<xsl:text>&#160;As&#160;</xsl:text>
 					</xsl:if>
@@ -978,18 +988,19 @@
 					<xsl:when test="$include-type-links=true()">
 						<xsl:variable name="link-type">
 							<xsl:call-template name="get-datatype">
-								<xsl:with-param name="datatype" select="@type" />
+								<xsl:with-param name="datatype" select="@displayName" />
 								<xsl:with-param name="lang" select="$lang" />
 							</xsl:call-template>
 						</xsl:variable>
 						<xsl:call-template name="get-link-for-type-name">
+              <!-- Fix from Jan Bergstrom said March 16, 2006 @ 9:07 pm -->
 							<xsl:with-param name="type-name" select="@type" />
 							<xsl:with-param name="link-text" select="$link-type" />
 						</xsl:call-template>
 					</xsl:when>
 					<xsl:otherwise>
 						<xsl:call-template name="get-datatype">
-							<xsl:with-param name="datatype" select="@type" />
+							<xsl:with-param name="datatype" select="@displayName" />
 							<xsl:with-param name="lang" select="$lang" />
 						</xsl:call-template>
 					</xsl:otherwise>
@@ -998,7 +1009,7 @@
 					<xsl:if test="$lang != 'Visual Basic'">
 						<xsl:text>&#160;</xsl:text>
 						<i>
-							<xsl:value-of select="@name" />
+							<xsl:value-of select="@displayName" />
 						</i>
 					</xsl:if>
 				</xsl:if>
@@ -1045,7 +1056,7 @@
 		<xsl:text>(</xsl:text>
 		<xsl:for-each select="parameter">
 			<xsl:call-template name="strip-namespace">
-				<xsl:with-param name="name" select="@type" />
+				<xsl:with-param name="name" select="@displayName" />
 			</xsl:call-template>
 			<xsl:if test="position()!=last()">
 				<xsl:text>, </xsl:text>
@@ -1105,12 +1116,12 @@
 		<xsl:param name="lang" />
 		<xsl:if test="@target"><xsl:value-of select="@target" /> : </xsl:if>
 		<xsl:call-template name="strip-namespace-and-attribute">
-			<xsl:with-param name="name" select="@name" />
+			<xsl:with-param name="name" select="@displayName" />
 		</xsl:call-template>
 		<xsl:if test="count(property | field) > 0">
 			<xsl:text>(</xsl:text>
 			<xsl:for-each select="property | field">
-				<xsl:value-of select="@name" />
+				<xsl:value-of select="@displayName" />
 				<xsl:choose>
 				<xsl:when test="$lang='Visual Basic'"><xsl:text>:=</xsl:text></xsl:when>
 				<xsl:otherwise><xsl:text>=</xsl:text></xsl:otherwise>
@@ -1153,5 +1164,53 @@
 			</xsl:otherwise>
 		</xsl:choose>
 	</xsl:template>
-	<!-- -->
+  <!-- -->
+  <xsl:template name="generics-constraints">
+    <xsl:param name="version" />
+    <xsl:if test="genericArgument">
+      <xsl:for-each select="genericArgument[@constraint != 'None' or constraintType]">
+        <xsl:if test="@constraint != 'None' or constraintType">
+          <xsl:text>&#160;where&#160;</xsl:text>
+          <xsl:value-of select="@name" />
+          <xsl:text>:&#160;</xsl:text>
+          <xsl:choose>
+            <xsl:when test="@constraint = 'None'"/>
+            <xsl:when test="@constraint = 'ReferenceTypeConstraint'">
+              <xsl:text>class</xsl:text>
+              <xsl:if test="constraintType">
+                <xsl:text>,&#160;</xsl:text>
+              </xsl:if>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:value-of select="@constraint" />
+              <xsl:if test="constraintType">
+                <xsl:text>,&#160;</xsl:text>
+              </xsl:if>
+            </xsl:otherwise>
+          </xsl:choose>
+        </xsl:if>
+        <xsl:for-each select="constraintType">
+          <xsl:if test="$version='long'">
+            <a>
+              <xsl:attribute name="href">
+                <xsl:call-template name="get-filename-for-type-name">
+                  <xsl:with-param name="type-name" select="@type" />
+                </xsl:call-template>
+              </xsl:attribute>
+              <xsl:value-of select="@displayName" />
+            </a>
+          </xsl:if>
+          <xsl:if test="$version!='long'">
+            <xsl:value-of select="@displayName" />
+          </xsl:if>
+          <xsl:if test="position()!= last()">
+            <xsl:text>,</xsl:text>
+          </xsl:if>
+        </xsl:for-each>
+        <xsl:if test="position()!= last()">
+          <xsl:text>,&#160;</xsl:text>
+        </xsl:if>
+      </xsl:for-each>
+    </xsl:if>
+  </xsl:template>
 </xsl:stylesheet>

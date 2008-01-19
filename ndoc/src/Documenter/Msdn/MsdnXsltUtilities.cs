@@ -1,6 +1,9 @@
 using System;
+using System.Diagnostics;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Globalization;
+using System.Text;
 
 using NDoc.Core;
 using NDoc.Core.Reflection;
@@ -13,19 +16,23 @@ namespace NDoc.Documenter.Msdn
 	public class MsdnXsltUtilities
 	{
 		private const string sdkDoc10BaseNamespace = "MS.NETFrameworkSDK";
-		private const string sdkDoc11BaseNamespace = "MS.NETFrameworkSDKv1.1";
+        private const string sdkDoc11BaseNamespace = "MS.NETFrameworkSDKv1.1";
+        private const string sdkDoc20BaseNamespace = "MS.VSCC.v80/MS.MSDN.v80/MS.NETDEVFX.v20.en";
 		private const string helpURL = "ms-help://";
-		private const string sdkRoot = "/cpref/html/frlrf";
-		private const string sdkDocPageExt = ".htm";
+        private string sdkRoot = "/cpref/html/frlrf";
+        private const string sdkDocPageExt = ".htm";
 		private const string msdnOnlineSdkBaseUrl = "http://msdn.microsoft.com/library/default.asp?url=/library/en-us/cpref/html/frlrf";
 		private const string msdnOnlineSdkPageExt = ".asp";
 		private const string systemPrefix = "System.";
+		private string frameworkVersion="";
 		private string sdkDocBaseUrl; 
 		private string sdkDocExt; 
 		private StringDictionary fileNames;
 		private StringDictionary elemNames;
 		private StringCollection descriptions;
 		private string encodingString;
+        private Dictionary<string, string> map = new Dictionary<string, string>();
+        private SdkVersion sdkVersion;
 
 		/// <summary>
 		/// Initializes a new instance of class MsdnXsltUtilities
@@ -62,14 +69,37 @@ namespace NDoc.Documenter.Msdn
 					case SdkVersion.SDK_v1_0:
 						sdkDocBaseUrl = GetLocalizedFrameworkURL(sdkDoc10BaseNamespace,linkToSdkDocLangauge);
 						sdkDocExt = sdkDocPageExt;
+						frameworkVersion="1.0";
+                        sdkVersion = SdkVersion.SDK_v1_0;
 						break;
 					case SdkVersion.SDK_v1_1:
 						sdkDocBaseUrl = GetLocalizedFrameworkURL(sdkDoc11BaseNamespace,linkToSdkDocLangauge);
 						sdkDocExt = sdkDocPageExt;
-						break;
+						frameworkVersion="1.1";
+                        sdkVersion = SdkVersion.SDK_v1_1;
+                        break;
+                    case SdkVersion.SDK_v2_0:
+                        sdkRoot = "/cpref2/html/";
+                        sdkDocBaseUrl = GetLocalizedFrameworkURL(sdkDoc20BaseNamespace, linkToSdkDocLangauge);
+                        sdkDocExt = sdkDocPageExt;
+                        frameworkVersion = "2.0";
+                        sdkVersion = SdkVersion.SDK_v2_0;
+                        break;
+					default:
+						Debug.Assert( false );		// remind ourselves to update this list when new framework versions are supported
+                        break;
 				}
-			}
-			encodingString = "text/html; charset=" + fileEncoding.WebName; 
+            }
+			encodingString = "text/html; charset=" + fileEncoding.WebName;
+
+            /// <summary>
+            /// System reflection incorrectly reports Enumerator, KeyCollection and ValueCollection base types, so fix it here!
+            /// </summary>
+            map = new Dictionary<string, string>();
+            map.Add("System.Collections.Generic.Enumerator`1", "System.Collections.Generic.IEnumerator`1");
+            map.Add("System.Collections.Generic.Enumerator`2", "System.Collections.Generic.IEnumerator`1");
+            map.Add("System.Collections.Generic.KeyCollection`2", "System.Collections.Generic.Dictionary`2_KeyCollection");
+            map.Add("System.Collections.Generic.ValueCollection`2", "System.Collections.Generic.Dictionary`2_ValueCollection");
 		}
 
 		/// <summary>
@@ -97,6 +127,14 @@ namespace NDoc.Documenter.Msdn
 		}
 
 		/// <summary>
+		/// Gets the friendly version number for the framework.
+		/// </summary>
+		public string FrameworkVersion
+		{
+			get {return frameworkVersion;}
+		}
+
+		/// <summary>
 		/// Returns an HRef for a CRef.
 		/// </summary>
 		/// <param name="cref">CRef for which the HRef will be looked up.</param>
@@ -113,24 +151,35 @@ namespace NDoc.Documenter.Msdn
 					fileName = fileNames["E:" + cref.Substring(2)];
 
 				if (fileName == null)
+                {
 					return "";
+                }
 				else
+                {
 					return fileName;
+                }
 			}
 			else
 			{
 				switch (cref.Substring(0, 2))
 				{
 					case "N:":	// Namespace
-						return sdkDocBaseUrl + cref.Substring(2).Replace(".", "") + sdkDocExt;
+                        return sdkDocBaseUrl + cref.Substring(2).Replace(".", "") + sdkDocExt;
 					case "T:":	// Type: class, interface, struct, enum, delegate
 						// pointer types link to the type being pointed to
-						return sdkDocBaseUrl + cref.Substring(2).Replace(".", "").Replace( "*", "" ) + "ClassTopic" + sdkDocExt;
-					case "F:":	// Field
-					case "P:":	// Property
-					case "M:":	// Method
-					case "E:":	// Event
-						return GetFilenameForSystemMember(cref);
+                        if (frameworkVersion == "2.0")
+                        {
+                            return sdkDocBaseUrl + "T_" + cref.Substring(2).Replace(".", "_").Replace("*", "") + sdkDocExt;
+                        }
+						else 
+                        {
+                            return sdkDocBaseUrl + cref.Substring(2).Replace(".", "").Replace( "*", "" ) + "ClassTopic" + sdkDocExt;
+                        }
+                    case "F:":	// Field
+                    case "P:":	// Property
+                    case "M:":	// Method
+                    case "E:":	// Event
+                            return GetFilenameForSystemMember(cref);
 					default:
 						return string.Empty;
 				}
@@ -253,5 +302,103 @@ namespace NDoc.Documenter.Msdn
 			return encodingString;
 		}
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="fullName"></param>
+        /// <returns></returns>
+        public string GetClassTopic(string fullName)
+        {
+            string url = sdkDocBaseUrl + "T_";
+            if (sdkVersion != SdkVersion.SDK_v2_0)
+            {
+                fullName = fullName.Replace(".", "");
+                fullName = fullName.Replace("[","");
+                fullName = fullName.Replace("]","");
+                fullName = fullName.Replace(",","");
+                fullName = fullName.Replace("*","");
+                // <xsl:value-of select="concat($ndoc-sdk-doc-base-url, translate($type-name, '.[,]*', ''), 'ClassTopic', $ndoc-sdk-doc-file-ext)" />
+                url = sdkDocBaseUrl + fullName + "ClassTopic" + sdkDocPageExt;
+                return url;
+            }
+
+            if (map.ContainsKey(fullName))
+            {
+                url = map[fullName];
+                return url;
+            }
+            string name = fullName;
+
+            // If we have a generic collection, or enumerator, just map it to the correct URL
+            if (name.IndexOf("{") != -1)
+            {
+                string genericClassName = name.Substring(0, name.IndexOf("{"));
+                if (map.ContainsKey(genericClassName))
+                {
+                    name = map[genericClassName];
+                }
+                else
+                {
+                    string newValue = name;
+                    int genericStart = name.IndexOf("{");
+                    if (genericStart != -1)
+                    {
+                        int openBrackets = 0;
+                        int parameters = 1;
+                        for (int i = genericStart; i < name.Length; i++)
+                        {
+                            if (name[i] == '{')
+                                openBrackets++;
+                            else if (name[i] == '}')
+                            {
+                                openBrackets--;
+                            }
+                            else if (name[i] == ',')
+                                if (openBrackets == 1)
+                                    parameters++;
+                        }
+                        newValue = name.Substring(0, genericStart);
+                        newValue += "`" + parameters.ToString();
+                    }
+                    if (name != newValue)
+                    {
+                        // Fix Enumerator, KeyCollection and ValueCollection due to incorrect System Reflection results
+                        if (map.ContainsKey(newValue))
+                        {
+                            newValue = map[newValue];
+                        }
+                        name = newValue;
+                    }
+                    url += name.Replace(".", "_");
+                    url += sdkDocPageExt;
+                }
+            }
+            else // Fix Class URL
+            {
+                StringBuilder newLink = new StringBuilder();
+                for (int i = name.Length - 2; i > 0; i--)
+                {
+                    if (name[i] == '.')
+                    {
+                        string ns = name.Substring(0, i);
+                        if (MsdnHtmlUtilitiesV20.namespaces.ContainsKey(ns))
+                        {
+                            newLink.Append(MsdnHtmlUtilitiesV20.namespaces[ns]);
+                            name = name.Substring(i + 1);
+                            if (name.IndexOf('[') != -1)
+                                name = name.Substring(0, name.IndexOf('['));
+                            newLink.Append(name);
+                            newLink.Append(sdkDocPageExt);
+                            break;
+                        }
+                    }
+                }
+                url += newLink.ToString();
+                url = url.Replace("@", "");
+                url = url.Replace("*", "");
+            }
+            map[fullName] = url;
+            return url;
+        }
 	}
 }

@@ -39,7 +39,7 @@
 								<xsl:with-param name="type-name" select="$list[$last]/@type" />
 							</xsl:call-template>
 						</xsl:attribute>
-						<xsl:value-of select="substring-after($list[$last]/@id, ':' )" />
+						<xsl:value-of select="$list[$last]/@displayName" />
 					</a>
 				</xsl:when>
 				<xsl:otherwise>
@@ -53,11 +53,11 @@
 										<xsl:with-param name="id" select="$list[$last]/@id" />
 									</xsl:call-template>
 								</xsl:attribute>
-								<xsl:value-of select="substring-after($list[$last]/@id, ':' )" />
+								<xsl:value-of select="$list[$last]/@displayName" />
 							</a>
 						</xsl:when>
 						<xsl:otherwise>
-							<xsl:value-of select="substring-after($list[$last]/@id, ':' )" />
+							<xsl:value-of select="$list[$last]/@displayName" />
 						</xsl:otherwise>
 					</xsl:choose>
 				</xsl:otherwise>
@@ -104,11 +104,11 @@
 		<xsl:param name="type" />
 		<html dir="LTR">
 			<xsl:call-template name="html-head">
-				<xsl:with-param name="title" select="concat(@name, ' ', $type)" />
+				<xsl:with-param name="title" select="concat(@displayName, ' ', $type)" />
 			</xsl:call-template>
 			<body id="bodyID" class="dtBODY">
 				<xsl:call-template name="title-row">
-					<xsl:with-param name="type-name" select="concat(@name, ' ', $type)" />
+					<xsl:with-param name="type-name" select="concat(@displayName, ' ', $type)" />
 				</xsl:call-template>
 				<div id="nstext">
 					<xsl:call-template name="summary-section" />
@@ -119,7 +119,7 @@
 							</xsl:call-template>
 						</xsl:variable>
 						<xsl:if test="constructor|field|property|method|operator|event">
-							<p>For a list of all members of this type, see <a href="{$members-href}"><xsl:value-of select="@name" /> Members</a>.</p>
+							<p>For a list of all members of this type, see <a href="{$members-href}"><xsl:value-of select="@displayName" /> Members</a>.</p>
 						</xsl:if>
 					</xsl:if>
 					<xsl:if test="local-name()='enumeration' and @flags">
@@ -154,7 +154,7 @@
 																<xsl:with-param name="id" select="@id" />
 															</xsl:call-template>
 														</xsl:attribute>
-														<xsl:value-of select="substring-after(@id, ':' )" />
+														<xsl:value-of select="@displayName" />
 													</a>
 												</xsl:for-each>
 											</xsl:when>
@@ -192,7 +192,7 @@
 										<xsl:with-param name="count" select="$typeIndent+1" />
 									</xsl:call-template>
 									<b>
-										<xsl:value-of select="substring-after( @id, ':' )" />
+										<xsl:value-of select="@displayName" />
 									</b>
 									<xsl:if test="derivedBy">
 										<xsl:variable name="derivedTypeIndent" select="$typeIndent+2" />
@@ -209,7 +209,7 @@
 																<xsl:with-param name="id" select="@id" />
 															</xsl:call-template>
 														</xsl:attribute>
-														<xsl:value-of select="substring-after(@id, ':' )" />
+														<xsl:value-of select="@displayName" />
 													</a>
 												</xsl:for-each>
 											</xsl:when>
@@ -307,13 +307,13 @@
 									<xsl:element name="param">
 										<xsl:attribute name="name">Keyword</xsl:attribute>
 										<xsl:attribute name="value">
-											<xsl:value-of select="concat(@name, ' enumeration')" />
+											<xsl:value-of select="concat(@displayName, ' enumeration')" />
 										</xsl:attribute>
 									</xsl:element>
 									<xsl:element name="param">
 										<xsl:attribute name="name">Keyword</xsl:attribute>
 										<xsl:attribute name="value">
-											<xsl:value-of select="concat(substring-after(@id, ':'), ' enumeration')" />
+											<xsl:value-of select="concat(@namespace, '.', @displayName, ' enumeration')" />
 										</xsl:attribute>
 									</xsl:element>
 									<xsl:for-each select="field">
@@ -326,7 +326,7 @@
 										<xsl:element name="param">
 											<xsl:attribute name="name">Keyword</xsl:attribute>
 											<xsl:attribute name="value">
-												<xsl:value-of select="concat(../@name, '.', @name, ' enumeration member')" />
+												<xsl:value-of select="concat(../@displayName, '.', @name, ' enumeration member')" />
 											</xsl:attribute>
 										</xsl:element>
 									</xsl:for-each>
@@ -335,13 +335,13 @@
 									<xsl:element name="param">
 										<xsl:attribute name="name">Keyword</xsl:attribute>
 										<xsl:attribute name="value">
-											<xsl:value-of select="concat(@name, ' delegate')" />
+											<xsl:value-of select="concat(@displayName, ' delegate')" />
 										</xsl:attribute>
 									</xsl:element>
 									<xsl:element name="param">
 										<xsl:attribute name="name">Keyword</xsl:attribute>
 										<xsl:attribute name="value">
-											<xsl:value-of select="concat(substring-after(@id, ':'), ' delegate')" />
+											<xsl:value-of select="concat(@namespace, '.', @displayName, ' delegate')" />
 										</xsl:attribute>
 									</xsl:element>
 								</xsl:when>
@@ -349,7 +349,7 @@
 									<xsl:element name="param">
 										<xsl:attribute name="name">Keyword</xsl:attribute>
 										<xsl:attribute name="value">
-											<xsl:value-of select="concat(@name, ' ', local-name(), ', about ', @name, ' ', local-name())" />
+											<xsl:value-of select="concat(@displayName, ' ', local-name(), ', about ', @displayName, ' ', local-name())" />
 										</xsl:attribute>
 									</xsl:element>
 								</xsl:otherwise>
@@ -357,7 +357,7 @@
 						</object>
 					</xsl:if>
 					<xsl:call-template name="footer-row">
-						<xsl:with-param name="type-name" select="concat(@name, ' ', $type)" />
+						<xsl:with-param name="type-name" select="concat(@displayName, ' ', $type)" />
 					</xsl:call-template>
 				</div>
 			</body>
@@ -366,7 +366,7 @@
 	<!-- -->
 	<xsl:template name="interface-implementing-types-section">
 		<xsl:if test="implementedBy">
-			<h4 class="dtH4">Types that implement <xsl:value-of select="@name" /></h4>
+			<h4 class="dtH4">Types that implement <xsl:value-of select="@displayName" /></h4>
 			<div class="tablediv">
 				<table class="dtTABLE" cellspacing="0">
 					<tr valign="top">
@@ -391,7 +391,7 @@
 							<xsl:with-param name="id" select="@id" />
 						</xsl:call-template>
 					</xsl:attribute>
-					<xsl:value-of select="@name" />
+					<xsl:value-of select="@displayName" />
 				</a>
 			</td>
 			<td width="50%">

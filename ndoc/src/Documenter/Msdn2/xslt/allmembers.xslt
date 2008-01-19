@@ -12,12 +12,12 @@
 		<xsl:param name="type" />
 		<html dir="LTR">
 			<xsl:call-template name="html-head">
-				<xsl:with-param name="title" select="concat(@name, ' Members')" />
+				<xsl:with-param name="title" select="concat(@displayName, ' Members')" />
 			</xsl:call-template>
 			<body id="bodyID" class="dtBODY">
 				<xsl:call-template name="title-row">
 					<xsl:with-param name="type-name">
-						<xsl:value-of select="@name" /> Members
+						<xsl:value-of select="@displayName" /> Members
 					</xsl:with-param>
 				</xsl:call-template>
 				<div id="nstext">
@@ -28,7 +28,7 @@
 									<xsl:with-param name="id" select="@id" />
 								</xsl:call-template>
 							</xsl:attribute>
-							<xsl:value-of select="@name" />
+							<xsl:value-of select="@displayName" />
 							<xsl:text> overview</xsl:text>
 						</a>
 					</p>
@@ -224,7 +224,7 @@
 						<object type="application/x-oleobject" classid="clsid:1e2a7bd0-dab9-11d0-b93a-00c04fc99f9e" viewastext="true" style="display: none;">
 							<xsl:element name="param">
 								<xsl:attribute name="name">Keyword</xsl:attribute>
-								<xsl:attribute name="value"><xsl:value-of select="concat(@name, ' ', local-name())" /></xsl:attribute>
+								<xsl:attribute name="value"><xsl:value-of select="concat(@displayName, ' ', local-name())" /></xsl:attribute>
 							</xsl:element>
 							<xsl:element name="param">
 								<xsl:attribute name="name">Keyword</xsl:attribute>
@@ -232,14 +232,14 @@
 							</xsl:element>
 							<xsl:element name="param">
 								<xsl:attribute name="name">Keyword</xsl:attribute>
-								<xsl:attribute name="value"><xsl:value-of select="concat(@name, ' ', local-name(), ', all members')" /></xsl:attribute>
+								<xsl:attribute name="value"><xsl:value-of select="concat(@displayName, ' ', local-name(), ', all members')" /></xsl:attribute>
 							</xsl:element>
 						</object>
 					</xsl:if>
 										
 					<xsl:call-template name="footer-row">
 						<xsl:with-param name="type-name">
-							<xsl:value-of select="@name" /> Members
+							<xsl:value-of select="@displayName" /> Members
 						</xsl:with-param>
 					</xsl:call-template>
 				</div>

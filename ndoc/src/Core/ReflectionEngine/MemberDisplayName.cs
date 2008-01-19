@@ -56,7 +56,7 @@ namespace NDoc.Core
 
 
 #if NET_2_0
-        private static string GetTypeDisplayName(Type type)
+        public static string GetTypeDisplayName(Type type)
         {
             //if (type.HasGenericArguments) type = type.GetGenericTypeDefinition();
             if (type.ContainsGenericParameters)
@@ -65,7 +65,7 @@ namespace NDoc.Core
                 int i = type.Name.IndexOf('`');
                 if (i > -1)
                 {
-                    result = type.Name.Substring(0, type.Name.IndexOf('`'));
+                    result = type.Name.Substring(0, i);
                 }
                 else
                 {
@@ -73,6 +73,10 @@ namespace NDoc.Core
                 }
                 result += GetTypeArgumentsList(type);
                 return result;
+            }
+            else if (type.IsGenericType) // DWH
+            {
+                return GetTypeDisplayName(type.GetGenericTypeDefinition());
             }
             else
             {
