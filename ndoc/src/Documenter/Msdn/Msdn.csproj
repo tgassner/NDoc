@@ -1,7 +1,7 @@
 ﻿<Project DefaultTargets="Build" ToolsVersion="3.5" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ProjectType>Local</ProjectType>
-    <ProductVersion>8.0.21022</ProductVersion>
+    <ProductVersion>9.0.21022</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{8282F072-D966-4075-A8DA-8911E36F4980}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -123,6 +123,13 @@
     <Compile Include="MsdnDocumenterInfo.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="MsdnHtmlUtilitiesV20.cs" />
+    <Compile Include="MsdnUrlValidator.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MsdnUrlValidator.Designer.cs">
+      <DependentUpon>MsdnUrlValidator.cs</DependentUpon>
+    </Compile>
     <Compile Include="MsdnWorkspace.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -155,6 +162,9 @@
     <EmbeddedResource Include="images\puboperator.gif" />
     <EmbeddedResource Include="images\pubproperty.gif" />
     <EmbeddedResource Include="images\static.gif" />
+    <EmbeddedResource Include="MsdnUrlValidator.resx">
+      <DependentUpon>MsdnUrlValidator.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="onlinefiles\tree.css" />
     <EmbeddedResource Include="onlinefiles\tree.js" />
     <EmbeddedResource Include="onlinefiles\treenodedot.gif" />
