@@ -1,9 +1,9 @@
 ﻿<Project DefaultTargets="Build" ToolsVersion="3.5" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ProjectType>Local</ProjectType>
-    <ProductVersion>8.0.21022</ProductVersion>
+    <ProductVersion>9.0.21022</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{8282F072-D966-4075-A8DA-8911E36F4980}</ProjectGuid>
+    <ProjectGuid>{A60FDBA9-A16A-43AA-BCFB-7F545D8500F3}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ApplicationIcon>
@@ -123,6 +123,13 @@
     <Compile Include="Msdn2DocumenterInfo.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Msdn2HtmlUtilitiesV20.cs" />
+    <Compile Include="Msdn2UrlValidator.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Msdn2UrlValidator.Designer.cs">
+      <DependentUpon>Msdn2UrlValidator.cs</DependentUpon>
+    </Compile>
     <Compile Include="MsdnWorkspace.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -169,6 +176,9 @@
     <EmbeddedResource Include="images\seealso1b.gif" />
     <EmbeddedResource Include="images\seealso1c.gif" />
     <EmbeddedResource Include="images\static.gif" />
+    <EmbeddedResource Include="Msdn2UrlValidator.resx">
+      <DependentUpon>Msdn2UrlValidator.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="onlinefiles\tree.css" />
     <EmbeddedResource Include="onlinefiles\tree.js" />
     <EmbeddedResource Include="onlinefiles\treenodedot.gif" />
