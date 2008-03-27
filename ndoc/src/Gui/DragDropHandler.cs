@@ -1,8 +1,8 @@
 using System;
 using System.IO;
-using System.Collections;
 
 using NDoc.Core;
+using System.Collections.Generic;
 
 namespace NDoc.Gui
 {
@@ -66,9 +66,9 @@ namespace NDoc.Gui
 		/// </summary>
 		/// <param name="files">An arrray of assembly files names</param>
 		/// <returns>Populated collection</returns>
-		public static ICollection GetAssemblySlashDocs( string[] files )
+        public static ICollection<AssemblySlashDoc> GetAssemblySlashDocs(string[] files)
 		{
-			ArrayList assemblySlashDocs = new ArrayList();
+			IList<AssemblySlashDoc> assemblySlashDocs = new List<AssemblySlashDoc>();
 
 			foreach (string s in files)
 			{

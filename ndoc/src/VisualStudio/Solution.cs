@@ -17,278 +17,614 @@
  *      be misrepresented as being the original software.
  * 
  *   3. This notice may not be removed or altered from any source distribution.
- */ 
+ */
 #endregion
 
 using System;
-using System.Collections;
+//using System.Collections;
 using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.XPath;
-using System.DirectoryServices; // to get IIS virtual directory fiel path.
+using System.DirectoryServices;
+using System.Collections.Generic; // to get IIS virtual directory fiel path.
 
-namespace NDoc.VisualStudio
-{
-	/// <summary>
-	/// Represents a Visual Studio solution file.
-	/// </summary>
-	/// <remarks>
-	/// This class is used to read a Visual Studio solution file
-	/// </remarks>
-	public class Solution
-	{
-		/// <summary>
-		/// Initializes a new instance of the Solution class.
-		/// </summary>
-		/// <param name="slnPath">The Visual Studio solution file to parse.</param>
-		public Solution(string slnPath)
-		{
-			Read(slnPath);
-		}
+namespace NDoc.VisualStudio {
+    /// <summary> Represents the different supported IDEs </summary>
+    public enum IdeType {
+        /// <summary> Visual Studio Version 7 (2002) </summary>
+        Studio2002,
+        /// <summary> Visual Studio Version 7.1 (2003) </summary>
+        Studio2003,
+        /// <summary> Visual Studio Version 2005 (8) </summary>
+        Studio2005,
+        /// <summary> Visual Studio Version 2008 (9) </summary>
+        Studio2008,
+        /// <summary> No IDE is defines (initial Value) </summary>
+        Unknown
+    }
 
-		private string _directory;
+    //ToDo: Description for this Class
+    public class ConfigurationElements {
+        private IList<string> _platforms;
+        private IDictionary<Guid, ProjectElements> _projects;  //<project Guid,configs und Platforms of the Project>
 
-		/// <summary>Gets the SolutionDirectory property.</summary>
-		/// <remarks>This is the directory that contains the VS.NET
-		/// solution file.</remarks>
-		public string Directory
-		{
-			get { return _directory; }
-		}
+        public ConfigurationElements() {
+            this._platforms = new List<string>();
+            this._projects = new Dictionary<Guid, ProjectElements>();
+        }
 
-		private string _name;
+        public IList<string> Platforms {
+            get {
+                return this._platforms;
+            }
+        }
 
-		/// <summary>Gets the SolutionName property.</summary>
-		/// <remarks>This is the name of the VS.NET solution file
-		/// without the .sln extension.</remarks>
-		public string Name
-		{
-			get { return _name; }
-		}
+        public IDictionary<Guid, ProjectElements> Projects {
+            get {
+                return this._projects;
+            }
+        }
+    }
+
+    //ToDo: Descritopns for this Class
+    public struct ProjectElements {
+        private string _projectConfig;
+        private string _platform;
+
+        public ProjectElements(string projectConfig, string platform) {
+            this._platform = platform;
+            this._projectConfig = projectConfig;
+        }
+
+        public string ProjectConfig {
+            get {
+                return this._projectConfig;
+            }
+            set {
+                this._projectConfig = value;
+            }
+        }
+
+        public string Platform {
+            get {
+                return this._platform;
+            }
+            set {
+                this._platform = value;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Abstract representation of a Visual Studio solution file.
+    /// </summary>
+    public abstract class Solution : ISolution {
+
+        protected IDictionary<Guid, IProject> _projects = new Dictionary<Guid,IProject>();
+
+        protected string _directory;
+
+        /// <summary>Gets the SolutionDirectory property.</summary>
+        /// <remarks>This is the directory that contains the VS.NET
+        /// solution file.</remarks>
+        public string Directory {
+            get {
+                return _directory;
+            }
+        }
+
+        protected Dictionary<string, Dictionary<Guid, string>> _configurations = new Dictionary<string, Dictionary<Guid, string>>();
+        protected Dictionary<string, Dictionary<Guid, string>> _platforms = new Dictionary<string, Dictionary<Guid, string>>();
+        protected Dictionary<string, Dictionary<Guid, string>> _configurationAndPlatforms = new Dictionary<string, Dictionary<Guid, string>>();
+        //protected IDictionary<string, ConfigurationElements> _newConfigurations = new Dictionary<string, ConfigurationElements>();
+        
+        /// <summary>
+        /// Get the solution's configurations.
+        /// </summary>
+        /// <returns>A collection of configuration Elements.</returns>
+        public ICollection<ConfigurationElements> GetConfigurations() {
+            return null;
+        }
+
+        /// <summary>
+        /// Get the solution's configurations Names.
+        /// </summary>
+        /// <returns>A collection of configuration names.</returns>
+        public abstract ICollection<string> GetConfigurationsNames();
+
+        /// <summary>Gets the project with the specified name.</summary>
+        /// <param name="name">The project name.</param>
+        /// <returns>The project.</returns>
+        public IProject GetProject(string name) {
+            foreach (IProject project in _projects.Values) {
+                if (project.Name == name) {
+                    return project;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Returns the specified project's configuration name based for 
+        /// a specific solution configuration.
+        /// </summary>
+        /// <param name="solutionConfig">A valid configuration name for the solution.</param>
+        /// <param name="projectId">A valid project guid.</param>
+        /// <returns>The project configuration name or null.</returns>
+        /// <remarks>The null value is returned when the parameters are invalid,
+        /// or if the project is not marked to be built under the specified
+        /// solution configuration.</remarks>
+        public abstract string GetProjectConfigName(string solutionConfig, string projectId);
+
+        protected string _name;
+
+        /// <summary>Gets the SolutionName property.</summary>
+        /// <remarks>This is the name of the VS.NET solution file
+        /// without the .sln extension.</remarks>
+        public string Name {
+            get {
+                return _name;
+            }
+        }
+
+        protected IdeType _ide = IdeType.Unknown;
+
+        /// <summary>Gets the Ide property.</summary>
+        /// <remarks>This is the Version of Visual Studio or other supported IDEs</remarks>
+        public IdeType Ide {
+            get {
+                return _ide;
+            }
+        }
+
+        /// <summary>Allows you to enumerate (using foreach) over the 
+        /// solution's projects.</summary>
+        /// <returns>An enumerable list of projects.</returns>
+        public ICollection<IProject> GetProjects() {
+            return _projects.Values;
+        }
 
 
-		/// <summary>Reads a .sln file.</summary>
-		/// <param name="path">The path to the .sln file.</param>
-		private void Read(string path)
-		{
-			path = Path.GetFullPath(path);
-			_directory = Path.GetDirectoryName(path);
-			_name = Path.GetFileNameWithoutExtension(path);
+        /// <summary>Gets a count of the number of projects in the solution</summary>
+        public int ProjectCount {
+            get {
+                return _projects.Count;
+            }
+        }
 
-			StreamReader reader = null;
-			using (reader = new StreamReader(path))
-			{
-				string line = reader.ReadLine();
-				while (line!=null && line.Length==0)
+        public override string ToString() {
+            return this._name;
+        }
+    }
+
+    /// <summary>
+    /// Represents a Visual Studio 2002 or 2003 solution file.
+    /// </summary>
+    /// <remarks>
+    /// This class is used to read a Visual Studio solution file
+    /// </remarks>
+    public class Solution0203 : Solution {
+        /// <summary>
+        /// Initializes a new instance of the Solution of Studio 2002 or 2003 class.
+        /// </summary>
+        /// <param name="slnPath">The Visual Studio 2002 or 2003 solution file to parse.</param>
+        internal Solution0203(string slnPath) {
+            Read(slnPath);
+        }
+
+        /// <summary>
+        /// Get the solution's configurations Names.
+        /// </summary>
+        /// <returns>A collection of configuration names.</returns>
+        public override ICollection<string> GetConfigurationsNames() {
+            return _configurations.Keys;
+        }
+
+        /// <summary>
+        /// Returns the specified project's configuration name based for 
+        /// a specific solution configuration.
+        /// </summary>
+        /// <param name="solutionConfig">A valid configuration name for the solution.</param>
+        /// <param name="projectId">A valid project guid.</param>
+        /// <returns>The project configuration name or null.</returns>
+        /// <remarks>The null value is returned when the parameters are invalid,
+        /// or if the project is not marked to be built under the specified
+        /// solution configuration.</remarks>
+        public override string GetProjectConfigName(string solutionConfig, string projectId) {
+            IDictionary<Guid, string> ce = _configurations[solutionConfig];
+            if (ce == null) {
+                return null;
+            } else {
+                return ce[new Guid(projectId)];
+            }
+        }
+
+        /// <summary>Reads a .sln file.</summary>
+        /// <param name="path">The path to the .sln file.</param>
+        private void Read(string path) {
+            path = Path.GetFullPath(path);
+            _directory = Path.GetDirectoryName(path);
+            _name = Path.GetFileNameWithoutExtension(path);
+
+            StreamReader reader = null;
+            using (reader = new StreamReader(path)) {
+                string line = reader.ReadLine();
+                while (line != null && line.Length == 0) {
+                    line = reader.ReadLine();
+                }
+
+                if (line == null || !line.StartsWith("Microsoft Visual Studio Solution File")) {
+                    throw new ApplicationException("This is not a Microsoft Visual Studio Solution file.");
+                }
+
+                if (line.EndsWith("Format Version 8.00")){
+                    this._ide = IdeType.Studio2003;
+                } else if (line.EndsWith("Format Version 7.00")) {
+                    this._ide = IdeType.Studio2002;
+                }
+
+                while ((line = reader.ReadLine()) != null) {
+                    if (line.StartsWith("Project")) {
+                        AddProject(line);
+                    } else if (line.StartsWith("\tGlobalSection(SolutionConfiguration)")) {
+                        ReadSolutionConfig(reader);
+                    } else if (line.StartsWith("\tGlobalSection(ProjectConfiguration)")) {
+                        ReadProjectConfig(reader);
+                    }
+                }
+            }
+        }
+
+        private void ReadSolutionConfig(TextReader reader) {
+            string line;
+            while ((line = reader.ReadLine()) != null) {
+                if (line.StartsWith("\tEndGlobalSection"))
+                    return;
+
+                int eqpos = line.IndexOf('=');
+                string config = line.Substring(eqpos + 2);
+
+                _configurations.Add(config, new Dictionary<Guid,string>());
+            }
+        }
+
+        private void ReadProjectConfig(TextReader reader) {
+            const string pattern = @"^\t\t(?<projid>\S+)\.(?<solcfg>\S+)\.Build\.\d+ = (?<projcfg>\S+)\|.+";
+            Regex regex = new Regex(pattern);
+            string line;
+
+            while ((line = reader.ReadLine()) != null) {
+                if (line.StartsWith("\tEndGlobalSection"))
+                    return;
+
+                Match match = regex.Match(line);
+                if (match.Success) {
+                    string projid = match.Groups["projid"].Value;
+                    string solcfg = match.Groups["solcfg"].Value;
+                    string projcfg = match.Groups["projcfg"].Value;
+                    //projid = (new Guid(projid)).ToString();
+
+                    _configurations[solcfg].Add(new Guid(projid), projcfg);
+                }
+            }
+        }
+
+        private void AddProject(string projectLine) {
+            //string pattern = @"^Project\(""(?<unknown>\S+)""\) = ""(?<name>\S+)"", ""(?<path>\S+)"", ""(?<id>\S+)""";
+            // fix for bug 887476 
+            string pattern = @"^Project\(""(?<projecttype>.*?)""\) = ""(?<name>.*?)"", ""(?<path>.*?)"", ""(?<id>.*?)""";
+            Regex regex = new Regex(pattern);
+            Match match = regex.Match(projectLine);
+
+            if (match.Success) {
+                string projectTypeGUID = match.Groups["projecttype"].Value;
+                string name = match.Groups["name"].Value;
+                string path = match.Groups["path"].Value;
+                string id = match.Groups["id"].Value;
+
+                //we check the GUID as this tells us what type of VS project to process
+                //this ensures that it a standard project type, and not an third-party one,
+                //which might have a completely differant structure that we could not handle!
+                if (Project.GetProjectType(projectTypeGUID) == ProjektType.CS) //C# project
 				{
-					line = reader.ReadLine();
-				}
+                    IProject project = VisualStudioFactory.CreateProject(this,new Guid(id), name, Project.GetProjectType(projectTypeGUID));
+                    string absoluteProjectPath = String.Empty;
 
-				if (line==null || !line.StartsWith("Microsoft Visual Studio Solution File"))
+                    if (path.StartsWith("http:")) {
+                        Uri projectURL = new Uri(path);
+                        if (projectURL.Authority == "localhost") {
+                            //we will assume thet the virtual directory is on site 1 of localhost
+                            DirectoryEntry root = new DirectoryEntry("IIS://localhost/w3svc/1/root");
+                            string rootPath = root.Properties["Path"].Value as String;
+                            //we will also assume that the user has been clever and changed to virtual directory local path...
+                            absoluteProjectPath = rootPath + projectURL.AbsolutePath;
+                        }
+                    } else {
+                        absoluteProjectPath = Path.Combine(_directory, path);
+                    }
+
+
+                    if (absoluteProjectPath.Length > 0) {
+                        project.Read(absoluteProjectPath);
+
+                        string relativeProjectPath = Path.GetDirectoryName(absoluteProjectPath);
+                        project.RelativePath = relativeProjectPath;
+
+                        if (project.Type == ProjektType.CS || project.Type == ProjektType.WebSite) {
+                            _projects.Add(project.ID, project);
+                        }
+
+                        //if (project.ProjectType == "C# Local") {
+                        //    _projects.Add(project.ID, project);
+                        //}
+                        //if (project.ProjectType == "C# Web") {
+                        //    _projects.Add(project.ID, project);
+                        //}
+                    }
+                }
+                if (projectTypeGUID == "{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") // VB.NET project
 				{
-					throw new ApplicationException("This is not a Microsoft Visual Studio Solution file.");
-				}
+                }
 
-				while ((line = reader.ReadLine()) != null)
+                if (projectTypeGUID == "{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") // C++ project
 				{
-					if (line.StartsWith("Project"))
-					{
-						AddProject(line);
-					}
-					else if (line.StartsWith("\tGlobalSection(SolutionConfiguration)"))
-					{
-						ReadSolutionConfig(reader);
-					}
-					else if (line.StartsWith("\tGlobalSection(ProjectConfiguration)"))
-					{
-						ReadProjectConfig(reader);
-					}
-				}
-			}
-		}
-
-		private Hashtable _configurations = new Hashtable();
-
-		/// <summary>
-		/// Returns the specified project's configuration name based for 
-		/// a specific solution configuration.
-		/// </summary>
-		/// <param name="solutionConfig">A valid configuration name for the solution.</param>
-		/// <param name="projectId">A valid project guid.</param>
-		/// <returns>The project configuration name or null.</returns>
-		/// <remarks>The null value is returned when the parameters are invalid,
-		/// or if the project is not marked to be built under the specified
-		/// solution configuration.</remarks>
-		public string GetProjectConfigName(string solutionConfig, string projectId)
-		{
-			Hashtable pcfg = (Hashtable)_configurations[solutionConfig];
-			if (pcfg == null) 
-				return null;
-			else
-				return (string)pcfg[projectId];
-		}
-
-		/// <summary>
-		/// Get the solution's configurations.
-		/// </summary>
-		/// <returns>A collection of configuration names.</returns>
-		public ICollection GetConfigurations()
-		{
-			return _configurations.Keys;
-		}
-
-		private void ReadSolutionConfig(TextReader reader)
-		{
-			string line;
-			while ((line = reader.ReadLine()) != null)
-			{
-				if (line.StartsWith("\tEndGlobalSection"))
-					return;
-
-				int eqpos = line.IndexOf('=');
-				string config = line.Substring(eqpos + 2);
-
-				_configurations.Add(config, new Hashtable());
-			}
-		}
-
-		private void ReadProjectConfig(TextReader reader)
-		{
-			const string pattern = @"^\t\t(?<projid>\S+)\.(?<solcfg>\S+)\.Build\.\d+ = (?<projcfg>\S+)\|.+";
-			Regex regex = new Regex(pattern);
-			string line;
-
-			while ((line = reader.ReadLine()) != null)
-			{
-				if (line.StartsWith("\tEndGlobalSection"))
-					return;
-
-				Match match = regex.Match(line);
-				if (match.Success)
-				{
-					string projid = match.Groups["projid"].Value;
-					string solcfg = match.Groups["solcfg"].Value;
-					string projcfg = match.Groups["projcfg"].Value;
-					projid = (new Guid(projid)).ToString();
-
-					((Hashtable)_configurations[solcfg]).Add(projid, projcfg);
-				}
-			}
-		}
-
-		private Hashtable _projects = new Hashtable();
-
-		private void AddProject(string projectLine)
-		{			
-			//string pattern = @"^Project\(""(?<unknown>\S+)""\) = ""(?<name>\S+)"", ""(?<path>\S+)"", ""(?<id>\S+)""";
-			// fix for bug 887476 
-			string pattern = @"^Project\(""(?<projecttype>.*?)""\) = ""(?<name>.*?)"", ""(?<path>.*?)"", ""(?<id>.*?)""";
-			Regex regex = new Regex(pattern);
-			Match match = regex.Match(projectLine);
-		
-			if (match.Success)
-			{
-				string projectTypeGUID = match.Groups["projecttype"].Value;
-				string name = match.Groups["name"].Value;
-				string path = match.Groups["path"].Value;
-				string id = match.Groups["id"].Value;
-
-				//we check the GUID as this tells us what type of VS project to process
-				//this ensures that it a standard project type, and not an third-party one,
-				//which might have a completely differant structure that we could not handle!
-				if (projectTypeGUID=="{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") //C# project
-				{
-						Project project = new Project(this, new Guid(id), name);
-						string absoluteProjectPath = String.Empty; 
-						
-					if (path.StartsWith("http:"))
-					{
-						Uri projectURL = new Uri(path);
-						if (projectURL.Authority=="localhost")
-						{
-							//we will assume thet the virtual directory is on site 1 of localhost
-							DirectoryEntry root = new DirectoryEntry("IIS://localhost/w3svc/1/root");
-							string rootPath = root.Properties["Path"].Value as String;
-							//we will also assume that the user has been clever and changed to virtual directory local path...
-							absoluteProjectPath=rootPath + projectURL.AbsolutePath;
-						}
-					}
-					else
-					{
-						absoluteProjectPath = Path.Combine(_directory, path);
-					}
-
-					
-					if (absoluteProjectPath.Length>0)
-					{
-						project.Read(absoluteProjectPath);
-
-						string relativeProjectPath = Path.GetDirectoryName(absoluteProjectPath);
-						project.RelativePath = relativeProjectPath;
-
-						if (project.ProjectType == "C# Local")
-						{
-							_projects.Add(project.ID, project);
-						}
-						if (project.ProjectType == "C# Web")
-						{
-							_projects.Add(project.ID, project);
-						}
-					}
-				}
-				if (projectTypeGUID=="{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") // VB.NET project
-				{
-				}
-				
-				if (projectTypeGUID=="{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") // C++ project
-				{
-				}
-			}
-		}
+                }
+            }
+        }
 
 
-//		/// <summary>Gets the project with the specified GUID.</summary>
-//		/// <param name="id">The GUID used to identify the project in the .sln file.</param>
-//		/// <returns>The project.</returns>
-//		public Project GetProject(Guid id)
-//		{
-//			return (Project)_projects[id];
-//		}
+        //		/// <summary>Gets the project with the specified GUID.</summary>
+        //		/// <param name="id">The GUID used to identify the project in the .sln file.</param>
+        //		/// <returns>The project.</returns>
+        //		public Project GetProject(Guid id)
+        //		{
+        //			return (Project)_projects[id];
+        //		}
+    }
 
-		/// <summary>Gets the project with the specified name.</summary>
-		/// <param name="name">The project name.</param>
-		/// <returns>The project.</returns>
-		public Project GetProject(string name)
-		{
-			foreach (Project project in _projects.Values)
-			{
-				if (project.Name == name)
-				{
-					return project;
-				}
-			}
+    /// <summary>
+    /// Represents a Visual Studio 2005 or 2008 solution file.
+    /// </summary>
+    /// <remarks>
+    /// This class is used to read a Visual Studio solution file
+    /// </remarks>
+    public class Solution0508 : Solution {
+        /// <summary>
+        /// Initializes a new instance of the Solution class.
+        /// </summary>
+        /// <param name="slnPath">The Visual Studio solution file to parse.</param>
+        internal Solution0508(string slnPath) {
+            Read(slnPath);
+        }
 
-			return null;
-		}
+        /// <summary>
+        /// Get the solution's configurations Names.
+        /// </summary>
+        /// <returns>A collection of configuration names.</returns>
+        public override ICollection<string> GetConfigurationsNames() {
+            return _configurationAndPlatforms.Keys;
+        }
 
-		/// <summary>Allows you to enumerate (using foreach) over the 
-		/// solution's projects.</summary>
-		/// <returns>An enumerable list of projects.</returns>
-		public IEnumerable GetProjects()
-		{
-			return _projects.Values;
-		}
+        /// <summary>
+        /// Returns the specified project's configuration name based for 
+        /// a specific solution configuration.
+        /// </summary>
+        /// <param name="solutionConfig">A valid configuration name for the solution.</param>
+        /// <param name="projectId">A valid project guid.</param>
+        /// <returns>The project configuration name or null.</returns>
+        /// <remarks>The null value is returned when the parameters are invalid,
+        /// or if the project is not marked to be built under the specified
+        /// solution configuration.</remarks>
+        public override string GetProjectConfigName(string solutionConfig, string projectId) {
+            IDictionary<Guid, string> ce = _configurationAndPlatforms[solutionConfig];
+            if (ce == null) {
+                return null;
+            } else {
+                return ce[new Guid(projectId)];
+            }
+        }
 
-		/// <summary>Gets a count of the number of projects in the solution</summary>
-		public int ProjectCount
-		{
-			get
-			{
-				return _projects.Count;
-			}
-		}
+        /// <summary>Reads a .sln file.</summary>
+        /// <param name="path">The path to the .sln file.</param>
+        private void Read(string path) {
+            path = Path.GetFullPath(path);
+            _directory = Path.GetDirectoryName(path);
+            _name = Path.GetFileNameWithoutExtension(path);
 
-	}
+            StreamReader reader = null;
+            using (reader = new StreamReader(path)) {
+                string line = reader.ReadLine();
+                while (line != null && line.Length == 0) {
+                    line = reader.ReadLine();
+                }
+
+                if (line == null || !line.StartsWith("Microsoft Visual Studio Solution File")) {
+                    throw new ApplicationException("This is not a Microsoft Visual Studio Solution file.");
+                }
+
+                if (line.EndsWith("Format Version 10.00")) {
+                    this._ide = IdeType.Studio2008;
+                } else if (line.EndsWith("Format Version 9.00")) {
+                    this._ide = IdeType.Studio2005;
+                }
+
+                while ((line = reader.ReadLine()) != null) {
+                    if (line.StartsWith("Project")) {
+                        AddProject(line);
+                    }
+                    if (line.StartsWith("\tGlobalSection(SolutionConfigurationPlatforms)")) {
+                        ReadSolutionConfig(reader);
+                    }
+                    if (line.StartsWith("\tGlobalSection(ProjectConfigurationPlatforms)")) {
+                        ReadProjectConfig(reader);
+                    }
+                }
+            }
+        }
+
+        private void ReadSolutionConfig(TextReader reader) {
+            //string line;
+            //while ((line = reader.ReadLine()) != null && !line.StartsWith("\tEndGlobalSection")) {
+            //    int eqpos;
+            //    string config;
+            //    eqpos = line.IndexOf('=');
+            //    config = line.Substring(eqpos + 2);
+
+            //    string[] configAndPlatform = config.Split(new char[] { '|' });
+            //    configAndPlatform[0] = configAndPlatform[0].Trim();
+            //    configAndPlatform[1] = configAndPlatform[1].Trim();
+
+            //    if (!_configurations.ContainsKey(configAndPlatform[0])) {
+            //        //_configurations.Add(configAndPlatform[0], new ConfigurationElements());
+            //    }
+
+            //    //_configurations[configAndPlatform[0]].Platforms.Add(configAndPlatform[1]);
+            //}
+            string line;
+            while ((line = reader.ReadLine()) != null) {
+                if (line.StartsWith("\tEndGlobalSection"))
+                    return;
+
+                int eqpos = line.IndexOf('=');
+                string configAndPlatform = line.Substring(eqpos + 2);
+
+                string config = configAndPlatform.Substring(0, configAndPlatform.IndexOf('|'));
+                string platform = configAndPlatform.Substring(configAndPlatform.IndexOf('|') + 1);
+
+                if (!_configurationAndPlatforms.ContainsKey(configAndPlatform)) {
+                    _configurationAndPlatforms.Add(configAndPlatform, new Dictionary<Guid, string>());
+                }
+
+                if (!_configurations.ContainsKey(config)) {
+                    _configurations.Add(config, new Dictionary<Guid, string>());
+                }
+
+                if (!_platforms.ContainsKey(platform)) {
+                    _platforms.Add(platform, new Dictionary<Guid, string>());
+                }
+            }
+        }
+
+        private void ReadProjectConfig(TextReader reader) {
+            string pattern;
+            string line;
+
+            //while ((line = reader.ReadLine()) != null && !line.StartsWith("\tEndGlobalSection")) {
+            //    if (line.Contains("Build")) {
+            //        //string[] elements = line.Split(new char[] {'.'});
+            //        //line.IndexOf('.');
+
+            //        Guid projid = new Guid(line.Substring(0, line.IndexOf('.')).Trim());
+
+            //        string solcfg = line.Substring(line.IndexOf('.') + 1, line.IndexOf("|") - line.IndexOf('.') - 1);
+
+            //        string projcfg = line.Substring(line.IndexOf('=') + 2, line.LastIndexOf('|') - line.IndexOf('=') - 2);
+            //        string projpltfm = line.Substring(line.LastIndexOf('|') + 1).Trim();
+
+            //        if (!_newConfigurations[solcfg].Projects.ContainsKey(projid)) {
+            //            _newConfigurations[solcfg].Projects.Add(projid, new ProjectElements(projcfg, projpltfm));
+            //        }
+            //    }
+            //}
+
+            while ((line = reader.ReadLine()) != null && !line.StartsWith("\tEndGlobalSection")) {
+                if (line.Contains("Build")) {
+                    //string[] elements = line.Split(new char[] {'.'});
+                    //line.IndexOf('.');
+
+                    Guid projid = new Guid(line.Substring(0, line.IndexOf('.')).Trim());
+
+                    string solcfg = line.Substring(line.IndexOf('.') + 1, line.IndexOf("|") - line.IndexOf('.') - 1);
+                    string solConfigPltfm = line.Substring(line.IndexOf('.') + 1);
+                    solConfigPltfm = solConfigPltfm.Substring(0, solConfigPltfm.IndexOf('.'));
+                    string solPltFm = solConfigPltfm.Substring(solConfigPltfm.IndexOf('|') + 1);
+
+                    string projcfg = line.Substring(line.IndexOf('=') + 2, line.LastIndexOf('|') - line.IndexOf('=') - 2);
+                    string projpltfm = line.Substring(line.LastIndexOf('|') + 1).Trim();
+                    string projConfigPltFm = line.Substring(line.IndexOf('=') + 2);
+
+                    if (!_configurations[solcfg].ContainsKey(projid)) {
+                        _configurations[solcfg].Add(projid, projcfg);
+                    }
+
+                    if (!_platforms[solPltFm].ContainsKey(projid)) {
+                        _platforms[solPltFm].Add(projid, projpltfm);
+                    }
+
+                    if (!_configurationAndPlatforms[solConfigPltfm].ContainsKey(projid)) {
+                        _configurationAndPlatforms[solConfigPltfm].Add(projid, projConfigPltFm);
+                    }
+                }
+            }
+        }
+
+        private void AddProject(string projectLine) {
+            //string pattern = @"^Project\(""(?<unknown>\S+)""\) = ""(?<name>\S+)"", ""(?<path>\S+)"", ""(?<id>\S+)""";
+            // fix for bug 887476 
+            string pattern = @"^Project\(""(?<projecttype>.*?)""\) = ""(?<name>.*?)"", ""(?<path>.*?)"", ""(?<id>.*?)""";
+            Regex regex = new Regex(pattern);
+            Match match = regex.Match(projectLine);
+
+            if (match.Success) {
+                string projectTypeGUID = match.Groups["projecttype"].Value;
+                string name = match.Groups["name"].Value;
+                string path = match.Groups["path"].Value;
+                string id = match.Groups["id"].Value;
+
+                //we check the GUID as this tells us what type of VS project to process
+                //this ensures that it a standard project type, and not an third-party one,
+                //which might have a completely differant structure that we could not handle!
+                switch (Project.GetProjectType(projectTypeGUID)) {
+                    case ProjektType.CS:
+
+                        //Project0203 project = new Project0203(this, new Guid(id), name, Project0203.GetProjectType(projectTypeGUID));
+                        IProject project = VisualStudioFactory.CreateProject(this, new Guid(id), name, Project.GetProjectType(projectTypeGUID));
+
+                        string absoluteProjectPath = String.Empty;
+
+                        if (path.StartsWith("http:")) {
+                            Uri projectURL = new Uri(path);
+                            if (projectURL.Authority == "localhost") {
+                                //we will assume thet the virtual directory is on site 1 of localhost
+                                DirectoryEntry root = new DirectoryEntry("IIS://localhost/w3svc/1/root");
+                                string rootPath = root.Properties["Path"].Value as String;
+                                //we will also assume that the user has been clever and changed to virtual directory local path...
+                                absoluteProjectPath = rootPath + projectURL.AbsolutePath;
+                            }
+                        } else {
+                            absoluteProjectPath = Path.Combine(_directory, path);
+                        }
+
+
+                        if (absoluteProjectPath.Length > 0) {
+                            project.Read(absoluteProjectPath);
+
+                            string relativeProjectPath = Path.GetDirectoryName(absoluteProjectPath);
+                            project.RelativePath = relativeProjectPath;
+
+                            _projects.Add(project.ID, project);
+
+                        }
+                        break;
+                    case ProjektType.VB:
+                        break;
+                    case ProjektType.CPP:
+                        break;
+                    case ProjektType.Setup:
+                    default:
+                        break;
+                }
+            }
+        }
+
+        //		/// <summary>Gets the project with the specified GUID.</summary>
+        //		/// <param name="id">The GUID used to identify the project in the .sln file.</param>
+        //		/// <returns>The project.</returns>
+        //		public Project GetProject(Guid id)
+        //		{
+        //			return (Project)_projects[id];
+        //		}
+    }
 }
