@@ -16,7 +16,6 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 using System;
-using System.Collections;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -25,6 +24,7 @@ using System.Text;
 using System.Xml;
 
 using NDoc.Core;
+using System.Collections.Generic;
 
 namespace NDoc.ConsoleApplication
 {
@@ -276,7 +276,7 @@ namespace NDoc.ConsoleApplication
 		private static void WriteHelpAvailableDocumenters()
 		{
 			Console.Write("available documenters: ");
-			ArrayList docs = InstalledDocumenters.Documenters;
+            IList<IDocumenterInfo> docs = InstalledDocumenters.Documenters;
 			for (int i = 0; i < docs.Count; i++)
 			{
 				if (i > 0) Console.Write(", ");
@@ -503,7 +503,7 @@ namespace NDoc.ConsoleApplication
 			ReflectionTypeLoadException rtle = ex as ReflectionTypeLoadException;
 			if (rtle != null)
 			{
-				Hashtable fileLoadExceptions = new Hashtable();
+				IDictionary<string,Object> fileLoadExceptions = new Dictionary<string,Object>();
 				foreach(Exception loaderEx in rtle.LoaderExceptions)
 				{
 					System.IO.FileLoadException fileLoadEx = loaderEx as System.IO.FileLoadException;

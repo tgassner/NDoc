@@ -36,6 +36,7 @@ using System.Diagnostics;
 using NDoc.Core;
 using NDoc.Core.PropertyGridUI;
 using VS = NDoc.VisualStudio;
+using System.Collections.Generic;
 
 namespace NDoc.Gui
 {
@@ -985,7 +986,7 @@ namespace NDoc.Gui
 			this.ShowDescriptions = settings.GetSetting( "gui", "showDescriptions", true );
 			this.assemblyListControl.DetailsView = settings.GetSetting( "gui", "detailedAssemblyView", false );
 
-			IList list = recentProjectFilenames;
+			IList<Object> list = (IList<Object>)recentProjectFilenames;
 			settings.GetSettingList( "gui", "mru", typeof( string ), ref list );		
 	
 			string documenterName = settings.GetSetting( "gui", "documenter", "MSDN" );
@@ -1040,7 +1041,7 @@ namespace NDoc.Gui
 				while (recentProjectFilenames.Count > this.options.MRUSize)
 					recentProjectFilenames.RemoveAt(this.options.MRUSize);
 
-				settings.SetSettingList( "gui", "mru", "project", recentProjectFilenames );			
+				settings.SetSettingList( "gui", "mru", "project", (IList<Object>)recentProjectFilenames );			
 			}
 		}
 
@@ -1188,7 +1189,8 @@ namespace NDoc.Gui
 
 					if( openFileDlg.ShowDialog() == DialogResult.OK )
 					{
-						VS.Solution sol = new VS.Solution( openFileDlg.FileName );
+						//VS.Solution sol = new VS.Solution( openFileDlg.FileName );
+                        VS.ISolution sol = VS.VisualStudioFactory.CreateSolution(openFileDlg.FileName);
 
 						string warningMessages = String.Empty;
 
@@ -1200,7 +1202,7 @@ namespace NDoc.Gui
 
 								sf.ConfigList.Items.Clear();
 
-								foreach (string configkey in sol.GetConfigurations())
+								foreach (string configkey in sol.GetConfigurationsNames())
 									sf.ConfigList.Items.Add(configkey);
 
 								sf.ShowDialog(this);
@@ -1232,12 +1234,12 @@ namespace NDoc.Gui
 			}
 		}
 
-		private string LoadFromSolution( VS.Solution sol, string solconfig )
+		private string LoadFromSolution( VS.ISolution sol, string solconfig )
 		{
 			using ( new WaitCursor( this ) )
 			{
 				string warningMessages = "";
-				foreach (VS.Project p in sol.GetProjects())
+                foreach (VS.IProject p in sol.GetProjects())
 				{
 					string projconfig = sol.GetProjectConfigName( solconfig, p.ID.ToString() );
 

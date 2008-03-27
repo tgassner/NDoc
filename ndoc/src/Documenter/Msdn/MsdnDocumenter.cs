@@ -16,7 +16,6 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
@@ -52,8 +51,8 @@ namespace NDoc.Documenter.Msdn
 		private XmlDocument xmlDocumentation;
 		private XPathDocument xpathDocument;
 
-		private Hashtable lowerCaseTypeNames;
-		private Hashtable mixedCaseTypeNames;
+        private IDictionary<WhichType,string> lowerCaseTypeNames;
+        private IDictionary<WhichType, string> mixedCaseTypeNames;
 		private StringDictionary fileNames;
 		private StringDictionary elemNames;
 		private MsdnXsltUtilities utilities;
@@ -62,7 +61,7 @@ namespace NDoc.Documenter.Msdn
 
 		private Encoding currentFileEncoding;
 
-		private ArrayList documentedNamespaces;
+		private IList<string> documentedNamespaces;
 
 		private Workspace workspace;
 
@@ -77,14 +76,14 @@ namespace NDoc.Documenter.Msdn
 		/// </summary>
 		public MsdnDocumenter( MsdnDocumenterConfig config ) : base( config )
 		{
-			lowerCaseTypeNames = new Hashtable();
+            lowerCaseTypeNames = new Dictionary<WhichType, string>();
 			lowerCaseTypeNames.Add(WhichType.Class, "class");
 			lowerCaseTypeNames.Add(WhichType.Interface, "interface");
 			lowerCaseTypeNames.Add(WhichType.Structure, "structure");
 			lowerCaseTypeNames.Add(WhichType.Enumeration, "enumeration");
 			lowerCaseTypeNames.Add(WhichType.Delegate, "delegate");
 
-			mixedCaseTypeNames = new Hashtable();
+			mixedCaseTypeNames = new Dictionary<WhichType,string>();
 			mixedCaseTypeNames.Add(WhichType.Class, "Class");
 			mixedCaseTypeNames.Add(WhichType.Interface, "Interface");
 			mixedCaseTypeNames.Add(WhichType.Structure, "Structure");
@@ -362,7 +361,7 @@ namespace NDoc.Documenter.Msdn
 
 				XmlNode defaultNamespace = namespaceNodes[indexes[0]];;
 
-				string defaultNamespaceName = (string)defaultNamespace.Attributes["name"].Value;
+				string defaultNamespaceName = defaultNamespace.Attributes["name"].Value;
 				string defaultTopic = defaultNamespaceName + ".html";
 
 				// setup for root page
@@ -442,7 +441,7 @@ namespace NDoc.Documenter.Msdn
 						if (MyConfig.RootPageContainsNamespaces) htmlHelp.OpenBookInContents();
 					}
 
-					documentedNamespaces = new ArrayList();
+					documentedNamespaces = new List<string>();
 					MakeHtmlForAssemblies();
 
                     // For .NET 2.0 Framework, verify/correct ms-help URLs
@@ -697,7 +696,7 @@ namespace NDoc.Documenter.Msdn
 				XmlNode assemblyNode = assemblyNodes[indexes[i]];
 				if (assemblyNode.ChildNodes.Count > 0)
 				{
-					string assemblyName = (string)assemblyNode.Attributes["name"].Value;
+					string assemblyName = assemblyNode.Attributes["name"].Value;
 					GetNamespacesFromAssembly(assemblyName, namespaceAssemblies);
 				}
 			}
@@ -778,7 +777,7 @@ namespace NDoc.Documenter.Msdn
 			XmlNodeList namespaceNodes = xmlDocumentation.SelectNodes("/ndoc/assembly[@name=\"" + assemblyName + "\"]/module/namespace");
 			foreach (XmlNode namespaceNode in namespaceNodes)
 			{
-				string namespaceName = (string)namespaceNode.Attributes["name"].Value;
+				string namespaceName = namespaceNode.Attributes["name"].Value;
 				namespaceAssemblies.Add(namespaceName, assemblyName);
 			}
 		}
@@ -1075,8 +1074,8 @@ namespace NDoc.Documenter.Msdn
 				{
 					propertyNode = propertyNodes[indexes[i]];
 
-					propertyName = (string)propertyNode.Attributes["name"].Value;
-					propertyID = (string)propertyNode.Attributes["id"].Value;
+					propertyName = propertyNode.Attributes["name"].Value;
+					propertyID = propertyNode.Attributes["id"].Value;
 
 					// If the method is overloaded then make an overload page.
 					previousPropertyName = ((i - 1 < 0) || (propertyNodes[indexes[i - 1]].Attributes.Count == 0))
@@ -1213,8 +1212,8 @@ namespace NDoc.Documenter.Msdn
 				for (int i = 0; i < nNodes; i++)
 				{
 					XmlNode methodNode = methodNodes[indexes[i]];
-					string methodName = (string)methodNode.Attributes["name"].Value;
-					string methodID = (string)methodNode.Attributes["id"].Value;
+					string methodName = methodNode.Attributes["name"].Value;
+					string methodID = methodNode.Attributes["id"].Value;
 
 					if (IsMethodFirstOverload(methodNodes, indexes, i))
 					{
@@ -1268,8 +1267,8 @@ namespace NDoc.Documenter.Msdn
 
 			if (operators.Count > 0)
 			{
-				string typeName = (string)typeNode.Attributes["name"].Value;
-				string typeID = (string)typeNode.Attributes["id"].Value;
+				string typeName = typeNode.Attributes["name"].Value;
+				string typeID = typeNode.Attributes["id"].Value;
 				XmlNodeList opNodes = typeNode.SelectNodes("operator");
 				string fileName = GetFilenameForOperators(whichType, typeNode);
 				bool bOverloaded = false;
@@ -1315,7 +1314,7 @@ namespace NDoc.Documenter.Msdn
 					XmlNode operatorNode = operators[indexes[i]];
 					string operatorID = operatorNode.Attributes["id"].Value;
 
-					string opName = (string)operatorNode.Attributes["name"].Value;
+					string opName = operatorNode.Attributes["name"].Value;
 					if ((opName != "op_Implicit") && (opName != "op_Explicit"))
 					{
 						if (IsMethodFirstOverload(opNodes, indexes, i))
@@ -1364,7 +1363,7 @@ namespace NDoc.Documenter.Msdn
 					XmlNode operatorNode = operators[indexes[i]];
 					string operatorID = operatorNode.Attributes["id"].Value;
 
-					string opName = (string)operatorNode.Attributes["name"].Value;
+					string opName = operatorNode.Attributes["name"].Value;
 					if ((opName == "op_Implicit") || (opName == "op_Explicit"))
 					{
 						fileName = GetFilenameForOperator(operatorNode);
@@ -1472,8 +1471,8 @@ namespace NDoc.Documenter.Msdn
 
 				if (events.Count > 0)
 				{
-					//string typeName = (string)typeNode.Attributes["name"].Value;
-					string typeID = (string)typeNode.Attributes["id"].Value;
+					//string typeName = typeNode.Attributes["name"].Value;
+					string typeID = typeNode.Attributes["id"].Value;
 					string fileName = GetFilenameForEvents(whichType, typeNode);
 
 					htmlHelp.AddFileToContents("Events", fileName);
@@ -1493,8 +1492,8 @@ namespace NDoc.Documenter.Msdn
 
 						if (eventElement.Attributes["declaringType"] == null)
 						{
-							string eventName = (string)eventElement.Attributes["name"].Value;
-							string eventID = (string)eventElement.Attributes["id"].Value;
+							string eventName = eventElement.Attributes["name"].Value;
+							string eventID = eventElement.Attributes["id"].Value;
 
 							fileName = GetFilenameForEvent(eventElement);
 							htmlHelp.AddFileToContents(eventName + " Event", 
@@ -1544,7 +1543,7 @@ namespace NDoc.Documenter.Msdn
 
 			foreach (XmlNode node in nodes)
 			{
-				names[i] = (string)node.Attributes[attributeName].Value;
+				names[i] = node.Attributes[attributeName].Value;
 				indexes[i] = i++;
 			}
 
@@ -1628,34 +1627,34 @@ namespace NDoc.Documenter.Msdn
 
 		private string GetFilenameForType(XmlNode typeNode)
 		{
-			string typeID = (string)typeNode.Attributes["id"].Value;
+			string typeID = typeNode.Attributes["id"].Value;
 			string fileName = typeID.Substring(2) + ".html";
 			return GetLegalFileName(fileName);
 		}
 
 		private string GetFilenameForTypeHierarchy(XmlNode typeNode)
 		{
-			string typeID = (string)typeNode.Attributes["id"].Value;
+			string typeID = typeNode.Attributes["id"].Value;
 			string fileName = typeID.Substring(2) + "Hierarchy.html";
 			return GetLegalFileName(fileName);
 		}
 		private string GetFilenameForTypeMembers(XmlNode typeNode)
 		{
-			string typeID = (string)typeNode.Attributes["id"].Value;
+			string typeID = typeNode.Attributes["id"].Value;
 			string fileName = typeID.Substring(2) + "Members.html";
 			return GetLegalFileName(fileName);
 		}
 
 		private string GetFilenameForConstructors(XmlNode typeNode)
 		{
-			string typeID = (string)typeNode.Attributes["id"].Value;
+			string typeID = typeNode.Attributes["id"].Value;
 			string fileName = typeID.Substring(2) + "Constructor.html";
 			return GetLegalFileName(fileName);
 		}
 
 		private string GetFilenameForConstructor(XmlNode constructorNode)
 		{
-			string constructorID = (string)constructorNode.Attributes["id"].Value;
+			string constructorID = constructorNode.Attributes["id"].Value;
 			int dotHash = constructorID.IndexOf(".#"); // constructors could be #ctor or #cctor
 
 			string fileName = constructorID.Substring(2, dotHash - 2);
@@ -1666,7 +1665,7 @@ namespace NDoc.Documenter.Msdn
 
 			if (constructorNode.Attributes["overload"] != null)
 			{
-				fileName += (string)constructorNode.Attributes["overload"].Value;
+				fileName += constructorNode.Attributes["overload"].Value;
 			}
 
 			fileName += ".html";
@@ -1676,14 +1675,14 @@ namespace NDoc.Documenter.Msdn
 
 		private string GetFilenameForFields(WhichType whichType, XmlNode typeNode)
 		{
-			string typeID = (string)typeNode.Attributes["id"].Value;
+			string typeID = typeNode.Attributes["id"].Value;
 			string fileName = typeID.Substring(2) + "Fields.html";
 			return GetLegalFileName(fileName);
 		}
 
 		private string GetFilenameForField(XmlNode fieldNode)
 		{
-			string fieldID = (string)fieldNode.Attributes["id"].Value;
+			string fieldID = fieldNode.Attributes["id"].Value;
 			string fileName = fieldID.Substring(2) + ".html";
 			fileName = fileName.Replace("#",".");
 			return GetLegalFileName(fileName);
@@ -1698,8 +1697,8 @@ namespace NDoc.Documenter.Msdn
 
 		private string GetFilenameForOperatorsOverloads(XmlNode typeNode, XmlNode opNode)
 		{
-			string typeID = (string)typeNode.Attributes["id"].Value;
-			string opName = (string)opNode.Attributes["name"].Value;
+			string typeID = typeNode.Attributes["id"].Value;
+			string opName = opNode.Attributes["name"].Value;
 			string fileName = typeID.Substring(2) + "." + opName + "_overloads.html";
 			return GetLegalFileName(fileName);
 		}
@@ -1729,14 +1728,14 @@ namespace NDoc.Documenter.Msdn
 
 		private string GetFilenameForEvents(WhichType whichType, XmlNode typeNode)
 		{
-			string typeID = (string)typeNode.Attributes["id"].Value;
+			string typeID = typeNode.Attributes["id"].Value;
 			string fileName = typeID.Substring(2) + "Events.html";
 			return GetLegalFileName(fileName);
 		}
 
 		private string GetFilenameForEvent(XmlNode eventNode)
 		{
-			string eventID = (string)eventNode.Attributes["id"].Value;
+			string eventID = eventNode.Attributes["id"].Value;
 			string fileName = eventID.Substring(2) + ".html";
 			fileName = fileName.Replace("#",".");
 			return GetLegalFileName(fileName);
@@ -1744,15 +1743,15 @@ namespace NDoc.Documenter.Msdn
 
 		private string GetFilenameForProperties(WhichType whichType, XmlNode typeNode)
 		{
-			string typeID = (string)typeNode.Attributes["id"].Value;
+			string typeID = typeNode.Attributes["id"].Value;
 			string fileName = typeID.Substring(2) + "Properties.html";
 			return GetLegalFileName(fileName);
 		}
 
 		private string GetFilenameForPropertyOverloads(XmlNode typeNode, XmlNode propertyNode)
 		{
-			string typeID = (string)typeNode.Attributes["id"].Value;
-			string propertyName = (string)propertyNode.Attributes["name"].Value;
+			string typeID = typeNode.Attributes["id"].Value;
+			string propertyName = propertyNode.Attributes["name"].Value;
 			string fileName = typeID.Substring(2) + propertyName + ".html";
 			fileName = fileName.Replace("#",".");
 			return GetLegalFileName(fileName);
@@ -1760,7 +1759,7 @@ namespace NDoc.Documenter.Msdn
 
 		private string GetFilenameForProperty(XmlNode propertyNode)
 		{
-			string propertyID = (string)propertyNode.Attributes["id"].Value;
+			string propertyID = propertyNode.Attributes["id"].Value;
 			string fileName = propertyID.Substring(2);
 
 			int leftParenIndex = fileName.IndexOf('(');
@@ -1772,7 +1771,7 @@ namespace NDoc.Documenter.Msdn
 
 			if (propertyNode.Attributes["overload"] != null)
 			{
-				fileName += (string)propertyNode.Attributes["overload"].Value;
+				fileName += propertyNode.Attributes["overload"].Value;
 			}
 
 			fileName += ".html";
@@ -1783,22 +1782,22 @@ namespace NDoc.Documenter.Msdn
 
 		private string GetFilenameForMethods(WhichType whichType, XmlNode typeNode)
 		{
-			string typeID = (string)typeNode.Attributes["id"].Value;
+			string typeID = typeNode.Attributes["id"].Value;
 			string fileName = typeID.Substring(2) + "Methods.html";
 			return GetLegalFileName(fileName);
 		}
 
 		private string GetFilenameForMethodOverloads(XmlNode typeNode, XmlNode methodNode)
 		{
-			string typeID = (string)typeNode.Attributes["id"].Value;
-			string methodName = (string)methodNode.Attributes["name"].Value;
+			string typeID = typeNode.Attributes["id"].Value;
+			string methodName = methodNode.Attributes["name"].Value;
 			string fileName = typeID.Substring(2) + "." + methodName + "_overloads.html";
 			return GetLegalFileName(fileName);
 		}
 
 		private string GetFilenameForMethod(XmlNode methodNode)
 		{
-			string methodID = (string)methodNode.Attributes["id"].Value;
+			string methodID = methodNode.Attributes["id"].Value;
 			string fileName = methodID.Substring(2);
 
 			int leftParenIndex = fileName.IndexOf('(');
@@ -1812,7 +1811,7 @@ namespace NDoc.Documenter.Msdn
 
 			if (methodNode.Attributes["overload"] != null)
 			{
-				fileName += "_overload_" + (string)methodNode.Attributes["overload"].Value;
+				fileName += "_overload_" + methodNode.Attributes["overload"].Value;
 			}
 
 			fileName += ".html";

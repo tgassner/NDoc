@@ -22,7 +22,7 @@ using System.Xml;
 using System.Xml.Xsl;
 using System.Xml.XPath;
 using System.Reflection;
-using System.Collections;
+using System.Collections.Generic;
 
 using NDoc.Core;
 using NDoc.Core.Reflection;
@@ -137,7 +137,7 @@ namespace NDoc.Documenter.JavaDoc
 			get { return (JavaDocDocumenterConfig)Config; }
 		}
 
-		private Hashtable cachedTransforms = new Hashtable();
+        private IDictionary<string, XslTransform> cachedTransforms = new Dictionary<string, XslTransform>();
 		/// <summary>
 		/// Gets the cached transform file, based upon the specified name.  If the file does not 
 		/// exist, it is created and then cached.

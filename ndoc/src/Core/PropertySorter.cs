@@ -2,8 +2,8 @@
 // (C) Paul Tingey 2004 
 //
 using System;
-using System.Collections;
 using System.ComponentModel;
+using System.Collections.Generic;
 
 namespace NDoc.Core.PropertyGridUI
 {
@@ -35,7 +35,7 @@ namespace NDoc.Core.PropertyGridUI
             // This override returns a list of properties in order
             //
             PropertyDescriptorCollection pdc = TypeDescriptor.GetProperties(value, attributes);
-            ArrayList orderedProperties = new ArrayList();
+            List<PropertyOrderPair> orderedProperties = new List<PropertyOrderPair>();
             foreach (PropertyDescriptor pd in pdc)
             {
                 Attribute attribute = pd.Attributes[typeof(PropertyOrderAttribute)];
@@ -63,7 +63,7 @@ namespace NDoc.Core.PropertyGridUI
             //
             // Build a string list of the ordered names
             //
-            ArrayList propertyNames = new ArrayList();
+            List<string> propertyNames = new List<string>();
             foreach (PropertyOrderPair pop in orderedProperties)
             {
                 propertyNames.Add(pop.Name);
@@ -71,7 +71,7 @@ namespace NDoc.Core.PropertyGridUI
             //
             // Pass in the ordered list for the PropertyDescriptorCollection to sort by
             //
-            return pdc.Sort((string[])propertyNames.ToArray(typeof(string)));
+            return pdc.Sort((string[])propertyNames.ToArray());
         }
 
 		#region Helper Class - PropertyOrderPair

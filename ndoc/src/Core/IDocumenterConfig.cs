@@ -16,8 +16,9 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 using System;
-using System.Collections;
 using System.Xml;
+using System.Collections.Generic;
+using System.Reflection;
 
 namespace NDoc.Core
 {
@@ -36,7 +37,7 @@ namespace NDoc.Core
 
 		/// <summary>Gets a list of property names.</summary>
 		/// <returns>An enumerable list of property names.</returns>
-		IEnumerable GetProperties();
+		IEnumerable<PropertyInfo> GetProperties();
 
 		/// <summary>Sets the value of a property.</summary>
 		/// <param name="name">The name of the property.</param>

@@ -18,6 +18,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing.Design;
 using System.Reflection;
@@ -88,9 +89,9 @@ namespace NDoc.Core
 
 		/// <summary>Gets an enumerable list of <see cref="PropertyInfo"/> objects representing the properties of this config.</summary>
 		/// <remarks>properties are represented by <see cref="PropertyInfo"/> objects.</remarks>
-		public IEnumerable GetProperties()
+		public IEnumerable<PropertyInfo> GetProperties()
 		{
-			ArrayList properties = new ArrayList();
+            IList<PropertyInfo> properties = new List<PropertyInfo>();
 
 			foreach (PropertyInfo property in GetType().GetProperties())
 			{

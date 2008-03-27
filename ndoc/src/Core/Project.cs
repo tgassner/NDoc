@@ -16,12 +16,12 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 using System;
-using System.Collections;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Xml;
 using System.Text;
+using System.Collections.Generic;
 
 namespace NDoc.Core
 {
@@ -347,7 +347,7 @@ namespace NDoc.Core
 				throw new DocumenterPropertyFormatException(FailureMessages);
 		}
 
-		private Hashtable _configs = new Hashtable();
+        private IDictionary<string, IDocumenterConfig> _configs = new Dictionary<string, IDocumenterConfig>();
 
 		/// <summary>
 		/// Event rasied when the <see cref="ActiveConfig"/> changes
@@ -504,7 +504,7 @@ namespace NDoc.Core
 				currentInfo = _currentConfig.DocumenterInfo;
 
 			// create a new configs collection populated with new configs for each type
-			Hashtable newConfigs = new Hashtable();
+            IDictionary<string, IDocumenterConfig> newConfigs = new Dictionary<string, IDocumenterConfig>();
 			foreach ( IDocumenterConfig config in _configs.Values )
 				newConfigs.Add( config.DocumenterInfo.Name, config.DocumenterInfo.CreateConfig( this ) );
 

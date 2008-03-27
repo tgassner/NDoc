@@ -21,7 +21,6 @@
 #endregion
 
 using System;
-using System.Collections;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -29,21 +28,36 @@ using System.Xml.XPath;
 
 namespace NDoc.VisualStudio
 {
-	/// <summary>
+    public abstract class ProjectConfig : IProjectConfig {
+
+        public abstract string DocumentationFile {
+            get;
+        }
+
+        public abstract string Name {
+            get;
+        }
+
+        public abstract string OutputPath {
+            get;
+        }
+    }
+    
+    /// <summary>
 	/// ProjectConfig settings for Visual Studio C# projects.
 	/// </summary>
-	public class ProjectConfig
+	public class ProjectConfig0203 : ProjectConfig
 	{
 		private XPathNavigator _Navigator;
 
-		internal ProjectConfig(XPathNavigator navigator)
+		internal ProjectConfig0203(XPathNavigator navigator)
 		{
 			_Navigator = navigator.Clone();
 		}
 
 		/// <summary>Gets the name of the configuration.</summary>
 		/// <remarks>This is usually "Debug" or "Release".</remarks>
-		public string Name
+		public override string Name
 		{
 			get
 			{
@@ -53,7 +67,7 @@ namespace NDoc.VisualStudio
 
 		/// <summary>Gets the location of the output files (relative to the 
 		/// project directory) for this project's configuration.</summary>
-		public string OutputPath
+        public override string OutputPath
 		{
 			get
 			{
@@ -64,7 +78,7 @@ namespace NDoc.VisualStudio
 		/// <summary>Gets the name of the file (relative to the project 
 		/// directory) into which documentation comments will be 
 		/// processed.</summary>
-		public string DocumentationFile
+        public override string DocumentationFile
 		{
 			get
 			{
@@ -72,4 +86,44 @@ namespace NDoc.VisualStudio
 			}
 		}
 	}
+
+    /// <summary>
+    /// ProjectConfig settings for Visual Studio C# projects.
+    /// </summary>
+    public class ProjectConfig0508 : ProjectConfig {
+            string _Name;
+            string _OutputPath;
+            string _DocumentationFile;
+
+        internal ProjectConfig0508(string name, string outputPath, string documentationFile) {
+            this._Name = name;
+            this._OutputPath = outputPath;
+            this._DocumentationFile = documentationFile;
+        }
+
+        /// <summary>Gets the name of the configuration.</summary>
+        /// <remarks>This is usually "Debug" or "Release".</remarks>
+        public override string Name {
+            get {
+                return _Name;
+            }
+        }
+
+        /// <summary>Gets the location of the output files (relative to the 
+        /// project directory) for this project's configuration.</summary>
+        public override string OutputPath {
+            get {
+                return _OutputPath;
+            }
+        }
+
+        /// <summary>Gets the name of the file (relative to the project 
+        /// directory) into which documentation comments will be 
+        /// processed.</summary>
+        public override string DocumentationFile {
+            get {
+                return _DocumentationFile;
+            }
+        }
+    }
 }

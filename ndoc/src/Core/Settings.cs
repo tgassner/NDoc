@@ -19,7 +19,7 @@ using System.Xml.Serialization;
 using System.Diagnostics;
 using System.Text;
 using System.Reflection;
-using System.Collections;
+using System.Collections.Generic;
 
 namespace NDoc.Core
 {
@@ -251,7 +251,7 @@ namespace NDoc.Core
 		/// <param name="name">The name of the setting</param>
 		/// <param name="itemType">The type of each setting in the list</param>
 		/// <param name="list">A <see cref="IList"/> into which to put each item</param>
-		public void GetSettingList( string section, string name, Type itemType, ref IList list )
+		public void GetSettingList( string section, string name, Type itemType, ref IList<Object> list )
 		{
 			if ( list == null )
 				throw new NullReferenceException();
@@ -284,7 +284,7 @@ namespace NDoc.Core
 		/// <param name="name">The name of the setting</param>
 		/// <param name="itemName">The name of each item in the list</param>
 		/// <param name="list">The list</param>
-		public void SetSettingList( string section, string name, string itemName, IList list )
+		public void SetSettingList( string section, string name, string itemName, IList<Object> list )
 		{
 			if ( list == null )
 				throw new NullReferenceException();

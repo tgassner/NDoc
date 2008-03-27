@@ -17,13 +17,13 @@
 
 using System;
 using System.IO;
-using System.Collections;
 using System.Globalization;
 using System.Xml;
 using System.Reflection;
 using Microsoft.Win32;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using System.Collections.Generic;
 
 namespace NDoc.Core.Reflection
 {
@@ -32,8 +32,8 @@ namespace NDoc.Core.Reflection
 	/// </summary>
 	internal class ExternalXmlSummaryCache
 	{
-		private Hashtable cachedDocs;
-		private Hashtable summaries;
+		private IDictionary<string,string> cachedDocs;
+		private IDictionary<string,string> summaries;
 		private string localizationLanguage;
 
 		/// <summary>
@@ -51,8 +51,8 @@ namespace NDoc.Core.Reflection
 		/// </summary>
 		public void Flush()
 		{
-			cachedDocs = new Hashtable();
-			summaries = new Hashtable();
+			cachedDocs = new Dictionary<string,string>();
+            summaries = new Dictionary<string, string>();
 		}
 
 		/// <summary>
@@ -81,7 +81,7 @@ namespace NDoc.Core.Reflection
 		/// </summary>
 		public void GetXmlFor(Type type)
 		{
-			string searchedDoc = (string)cachedDocs[type.Assembly.FullName];
+			string searchedDoc = cachedDocs[type.Assembly.FullName];
 
 			if (searchedDoc == null)
 			{
@@ -288,7 +288,7 @@ namespace NDoc.Core.Reflection
 			{
 				if (node.NodeType == XmlNodeType.Element) 
 				{
-					Hashtable linkTable=null;
+					IDictionary<string,Object> linkTable = null;
 					MarkupSeeLinks(ref linkTable, id, node);
 				}
 			}
@@ -300,7 +300,7 @@ namespace NDoc.Core.Reflection
 		/// <param name="linkTable">A table of previous links.</param>
 		/// <param name="id">current member name 'id'</param>
 		/// <param name="node">an Xml Node containing a doc tag</param>
-		private void MarkupSeeLinks(ref Hashtable linkTable, string id, XmlNode node)
+		private void MarkupSeeLinks(ref IDictionary<string,Object> linkTable, string id, XmlNode node)
 		{
 			if (node.LocalName=="see")
 			{
@@ -320,7 +320,7 @@ namespace NDoc.Core.Reflection
 						{
 							//assume an resonable initial table size,
 							//so we don't have to resize often.
-							linkTable = new Hashtable(16);
+                            linkTable = new Dictionary<string, Object>(16);
 						}
 						if (linkTable.ContainsKey(cref.Value))
 						{
@@ -374,7 +374,7 @@ namespace NDoc.Core.Reflection
 			string key = memberType + declaringType.FullName.Replace("+", ".") + "." + memberName;
 
 			//check the summaries cache first
-			string summary = (string)summaries[key];
+			string summary = summaries[key];
 
 			if (summary == null)
 			{
@@ -383,7 +383,7 @@ namespace NDoc.Core.Reflection
 
 				//the summary should now be cached (if it exists!)
 				//so lets have another go at getting it...
-				summary = (string)summaries[key];
+				summary = summaries[key];
 
 				//if no summary was not found, create an blank one
 				if (summary == null)

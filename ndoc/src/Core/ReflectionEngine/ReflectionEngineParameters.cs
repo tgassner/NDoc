@@ -15,7 +15,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 namespace NDoc.Core.Reflection
 {
@@ -44,8 +44,8 @@ namespace NDoc.Core.Reflection
 
 		private void CopyProject(Project project)
 		{
-			AssemblyFileNames = new ArrayList();
-			XmlDocFileNames = new ArrayList();
+			AssemblyFileNames = new List<string>();
+            XmlDocFileNames = new List<string>();
 			ReferencePaths  = new ReferencePathCollection();
 
 			foreach(AssemblySlashDoc assemblySlashDoc in project.AssemblySlashDocs)
@@ -67,7 +67,7 @@ namespace NDoc.Core.Reflection
 
 			if (project.Namespaces==null)
 			{
-				NamespaceSummaries  = new SortedList();
+				NamespaceSummaries  = new SortedList<string,Object>();
 			}
 			else
 			{
@@ -134,11 +134,11 @@ namespace NDoc.Core.Reflection
 		/// <summary>
 		/// 
 		/// </summary>
-		public ArrayList AssemblyFileNames;
+		public IList<string> AssemblyFileNames;
 		/// <summary>
 		/// 
 		/// </summary>
-		public ArrayList XmlDocFileNames;
+        public IList<string> XmlDocFileNames;
 		/// <summary>
 		/// 
 		/// </summary>
@@ -146,7 +146,7 @@ namespace NDoc.Core.Reflection
 		/// <summary>
 		/// 
 		/// </summary>
-		public SortedList NamespaceSummaries;
+		public SortedList<string,Object> NamespaceSummaries;
 		#endregion
 
 		#region documentation control
