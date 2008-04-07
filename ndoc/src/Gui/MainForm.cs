@@ -986,8 +986,8 @@ namespace NDoc.Gui
 			this.ShowDescriptions = settings.GetSetting( "gui", "showDescriptions", true );
 			this.assemblyListControl.DetailsView = settings.GetSetting( "gui", "detailedAssemblyView", false );
 
-			IList<Object> list = (IList<Object>)recentProjectFilenames;
-			settings.GetSettingList( "gui", "mru", typeof( string ), ref list );		
+            IList list = recentProjectFilenames;
+            settings.GetSettingList("gui", "mru", typeof(string), ref list);		
 	
 			string documenterName = settings.GetSetting( "gui", "documenter", "MSDN" );
 
@@ -1041,7 +1041,7 @@ namespace NDoc.Gui
 				while (recentProjectFilenames.Count > this.options.MRUSize)
 					recentProjectFilenames.RemoveAt(this.options.MRUSize);
 
-				settings.SetSettingList( "gui", "mru", "project", (IList<Object>)recentProjectFilenames );			
+                settings.SetSettingList("gui", "mru", "project", recentProjectFilenames);			
 			}
 		}
 

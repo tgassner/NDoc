@@ -908,7 +908,15 @@ namespace NDoc.Core.Reflection
 
         /// <summary>The SDK version 2.0.</summary>
         [Description(".Net Version 2.0")]
-        SDK_v2_0, 
+        SDK_v2_0,
+
+        /// <summary>The SDK version 3.0.</summary>
+        [Description(".Net Version 3.0")]
+        SDK_v3_0,
+
+        /// <summary>The SDK version 3.5.</summary>
+        [Description(".Net Version 3.5")]
+        SDK_v3_5, 
 	}
 
 	/// <summary>
