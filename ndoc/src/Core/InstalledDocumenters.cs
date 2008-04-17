@@ -1,8 +1,8 @@
 using System;
 using System.IO;
+using System.Collections;
 using System.Diagnostics;
 using System.Reflection;
-using System.Collections.Generic;
 
 namespace NDoc.Core
 {
@@ -15,8 +15,8 @@ namespace NDoc.Core
 		/// <summary>
 		/// Holds the list of directories that will be scanned for documenters.
 		/// </summary>
-		private static IList<string> _probePath = new List<string>();
-		private static IList<IDocumenterInfo> _Documenters;
+		private static ArrayList _probePath = new ArrayList();
+		private static ArrayList _Documenters;
 
 		static InstalledDocumenters()
 		{
@@ -30,7 +30,7 @@ namespace NDoc.Core
 		/// <summary>
 		/// Gets the list of available documenters.
 		/// </summary>
-        public static IList<IDocumenterInfo> Documenters
+		public static ArrayList Documenters
 		{
 			get
 			{
@@ -89,9 +89,9 @@ namespace NDoc.Core
 		/// An <see cref="ArrayList" /> containing new instances of all the 
 		/// found documenters.
 		/// </returns>
-        private static IList<IDocumenterInfo> FindDocumenters()
+		private static ArrayList FindDocumenters()
 		{
-            List<IDocumenterInfo> documenters = new List<IDocumenterInfo>();
+			ArrayList documenters = new ArrayList();
 
 #if MONO //System.Windows.Forms.Application.StartupPath is not implemented in mono v0.31
 			string mainModuleDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
@@ -117,7 +117,7 @@ namespace NDoc.Core
 		/// </summary>
 		/// <param name="documenters">The collection of <see cref="IDocumenter" /> instances to fill.</param>
 		/// <param name="path">The directory to scan for assemblies containing documenters.</param>
-        private static void FindDocumentersInPath(IList<IDocumenterInfo> documenters, string path) 
+		private static void FindDocumentersInPath( ArrayList documenters, string path) 
 		{
 			foreach (string fileName in Directory.GetFiles(path, "NDoc.Documenter.*.dll")) 
 			{

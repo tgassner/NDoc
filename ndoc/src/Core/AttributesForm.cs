@@ -15,7 +15,6 @@
 using System;
 using System.Drawing;
 using System.Collections;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows.Forms;
 
@@ -35,7 +34,7 @@ namespace NDoc.Core.PropertyGridUI
 		/// <summary>
 		/// Structure which holds all the attributes
 		/// </summary>
-		IList<AttributeToShow> AttributesToShow = new List<AttributeToShow>();
+		ArrayList AttributesToShow = new ArrayList();
 
 
 		private System.Windows.Forms.ListBox listAttributes;

@@ -15,7 +15,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 using System;
-
+using System.Collections;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
@@ -24,7 +24,6 @@ using System.Reflection;
 using System.Security;
 using System.Security.Permissions;
 using System.Security.Policy;
-using System.Collections.Generic;
 
 namespace NDoc.Core.Reflection
 {
@@ -37,13 +36,13 @@ namespace NDoc.Core.Reflection
 		private ReferencePathCollection SearchDirectories;
 
 		/// <summary>List of subdirectory lists already scanned.</summary>
-		private IDictionary<string,string[]> directoryLists;
+		private Hashtable directoryLists;
 
 		/// <summary>List of directories already scanned.</summary>
-        private IDictionary<string, Object> searchedDirectories;
+		private Hashtable searchedDirectories;
 
 		/// <summary>List of Assemblies that could not be resolved.</summary>
-		private IDictionary<string,Object> unresolvedAssemblies;
+		private Hashtable unresolvedAssemblies;
 
 		/// <summary>assemblies already scanned, but not loaded.</summary>
 		/// <remarks>Maps Assembly FullName to Filename for assemblies scanned, 
@@ -53,13 +52,13 @@ namespace NDoc.Core.Reflection
 		/// <term>If the requested assembly has not been loaded, but is in this list, then the file is loaded.</term>
 		/// <term>Once all search paths have been exhausted in an exact name match, this list is checked for a 'partial' match.</term>
 		/// </list></remarks>
-		private IDictionary<string,string> AssemblyNameFileNameMap;
+		private Hashtable AssemblyNameFileNameMap;
 
 		// loaded assembly cache keyed by Assembly FullName
-		//private Hashtable assemblysLoadedAssyName;
+		private Hashtable assemblysLoadedAssyName;
 
 		// loaded assembly cache keyed by Assembly FileName
-		private IDictionary<string,Assembly> assemblysLoadedFileName;
+		private Hashtable assemblysLoadedFileName;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="AssemblyLoader"/> class.
@@ -67,12 +66,12 @@ namespace NDoc.Core.Reflection
 		/// <param name="referenceDirectories">Reference directories.</param>
 		public AssemblyLoader(ReferencePathCollection referenceDirectories)
 		{
-			//this.assemblysLoadedAssyName = new Hashtable();
-			this.assemblysLoadedFileName = new Dictionary<string,Assembly>();
-            this.AssemblyNameFileNameMap = new Dictionary<string, string>();
-            this.directoryLists = new Dictionary<string, string[]>();
-            this.unresolvedAssemblies = new Dictionary<string, Object>();
-            this.searchedDirectories = new Dictionary<string, Object>();
+			this.assemblysLoadedAssyName = new Hashtable();
+			this.assemblysLoadedFileName = new Hashtable();
+			this.AssemblyNameFileNameMap = new Hashtable();
+			this.directoryLists = new Hashtable();
+			this.unresolvedAssemblies = new Hashtable();
+			this.searchedDirectories = new Hashtable();
 
 			this.SearchDirectories = referenceDirectories;
 		}
@@ -80,7 +79,7 @@ namespace NDoc.Core.Reflection
 		/// <summary>
 		/// Directories Searched for assemblies.
 		/// </summary>
-		public ICollection<string> SearchedDirectories 
+		public ICollection SearchedDirectories 
 		{
 			get { return searchedDirectories.Keys; }
 		} 
@@ -88,7 +87,7 @@ namespace NDoc.Core.Reflection
 		/// <summary>
 		/// Assemblies that could not be resolved.
 		/// </summary>
-		public ICollection<string> UnresolvedAssemblies 
+		public ICollection UnresolvedAssemblies 
 		{
 			get { return unresolvedAssemblies.Keys; }
 		} 
@@ -267,10 +266,10 @@ namespace NDoc.Core.Reflection
 			string fileName;
 
 			// we may have already located the assembly but not loaded it...
-			fileName = AssemblyNameFileNameMap[args.Name];
+			fileName = (string)AssemblyNameFileNameMap[args.Name];
 			if (fileName != null && fileName.Length > 0)
 			{
-				return LoadAssembly(AssemblyNameFileNameMap[args.Name]);
+				return LoadAssembly((string)AssemblyNameFileNameMap[args.Name]);
 			}
 
 			string[] assemblyInfo = args.Name.Split(new char[] {','});
@@ -339,7 +338,7 @@ namespace NDoc.Core.Reflection
 						string[] assemblyNameParts = assemblyName.Split(new char[] {','});
 						if (assemblyNameParts[0] == assemblyInfo[0])
 						{
-							assy = LoadAssembly(AssemblyNameFileNameMap[assemblyName]);
+							assy = LoadAssembly((string)AssemblyNameFileNameMap[assemblyName]);
 							break;
 						}
 					}
@@ -396,6 +395,7 @@ namespace NDoc.Core.Reflection
 		/// <returns>The assembly, or null if not found.</returns>
 		private Assembly LoadAssemblyFrom(string fullName, string fileName, string path, bool includeSubDirs) 
 		{
+			Assembly assembly = null;
 			if (!searchedDirectories.ContainsKey(path))
 			{
 				searchedDirectories.Add(path, null);
@@ -412,7 +412,8 @@ namespace NDoc.Core.Reflection
 						//This looks like the right assembly, try loading it
 						try
 						{
-							return LoadAssembly(fn);
+							assembly = LoadAssembly(fn);
+							return (assembly);
 						}
 						catch (Exception e)
 						{

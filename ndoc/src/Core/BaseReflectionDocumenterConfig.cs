@@ -897,7 +897,7 @@ namespace NDoc.Core.Reflection
 	/// <summary>
 	/// Defines a version of the .NET Framework documentation.
 	/// </summary>
-	public enum SdkVersion
+		public enum SdkVersion
 	{
 		/// <summary>The SDK version 1.0.</summary>
 		[Description(".Net Version 1.0")]
@@ -919,7 +919,6 @@ namespace NDoc.Core.Reflection
         [Description(".Net Version 3.5")]
         SDK_v3_5, 
 	}
-
 	/// <summary>
 	/// Defines a language version of the .NET Framework documentation.
 	/// </summary>
