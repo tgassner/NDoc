@@ -17,6 +17,7 @@
 using System;
 using System.Drawing;
 using System.Drawing.Design;
+using System.Collections;
 using System.ComponentModel;
 using System.Windows.Forms;
 using System.Windows.Forms.Design;

@@ -16,6 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 using System;
+using System.Collections;
 using System.Xml;
 using System.Reflection;
 using System.IO;
@@ -23,7 +24,6 @@ using System.Diagnostics;
 using System.Globalization;
 
 using NDoc.Core.Reflection;
-using System.Collections.Generic;
 
 namespace NDoc.Core
 {
@@ -32,7 +32,7 @@ namespace NDoc.Core
 	/// </summary>
 	public class Namespaces
 	{
-		private SortedList<string,Object> _namespaces;
+		private SortedList _namespaces;
 
 		
 		/// <summary>
@@ -40,7 +40,7 @@ namespace NDoc.Core
 		/// </summary>
 		/// <param name="namespaces">The Namespaces object to convert.</param>
 		/// <returns></returns>
-		public static implicit operator SortedList<string,Object>(Namespaces namespaces)
+		public static implicit operator SortedList(Namespaces namespaces)
 		{
 			return namespaces._namespaces;
 		}
@@ -61,7 +61,7 @@ namespace NDoc.Core
 		/// </summary>
 		public Namespaces()
 		{
-			_namespaces = new SortedList<string,Object>();
+			_namespaces = new SortedList();
 		}
 
 		/// <summary>
@@ -99,14 +99,14 @@ namespace NDoc.Core
 		}
 
 		/// <summary>Gets an enumerable list of namespace names.</summary>
-		public IEnumerable<string> NamespaceNames
+		public IEnumerable NamespaceNames
 		{
 			get
 			{
 				if (Count > 0)
 					return _namespaces.Keys;
 				else
-					return new List<string>();
+					return new ArrayList();
 			}
 		}
 
@@ -137,8 +137,8 @@ namespace NDoc.Core
 			{
 				if (reader.NodeType == XmlNodeType.Element && reader.Name == "namespace")
 				{
-					if (_namespaces == null)
-                        _namespaces = new SortedList<string, Object>();
+					if (_namespaces == null) 
+						_namespaces = new SortedList();
 
 					string name = reader["name"];
 					string summary = reader.ReadInnerXml();
@@ -171,7 +171,7 @@ namespace NDoc.Core
 				//do a quick check to make sure there are some namespace summaries
 				//if not, we don't need to write this section out
 				bool summariesExist = false;
-				foreach (KeyValuePair<string,Object> ns in _namespaces)
+				foreach (DictionaryEntry ns in _namespaces)
 				{
 					if (ns.Value != null && ((string)ns.Value).Length > 0) summariesExist = true;
 				}
@@ -180,7 +180,7 @@ namespace NDoc.Core
 				{
 					writer.WriteStartElement("namespaces");
 
-                    foreach (KeyValuePair<string, Object> ns in _namespaces)
+					foreach (DictionaryEntry ns in _namespaces)
 					{
 						if (ns.Value != null && ((string)ns.Value).Length > 0)
 						{
@@ -220,11 +220,11 @@ namespace NDoc.Core
 						string assemblyFullPath = assemblySlashDoc.Assembly.Path;
 						if (File.Exists(assemblyFullPath))
 						{
-							SortedList<string,Object> namespaces = re.GetNamespacesFromAssembly(rep, assemblyFullPath);
-							foreach (string ns in namespaces.Keys)
+							SortedList namespaces = re.GetNamespacesFromAssembly(rep, assemblyFullPath);
+							foreach (string ns in namespaces.GetKeyList())
 							{
 								if (_namespaces == null)
-									_namespaces = new SortedList<string,Object>();
+									_namespaces = new SortedList();
 								if ((!_namespaces.ContainsKey(ns)))
 								{
 									_namespaces.Add(ns, null);
