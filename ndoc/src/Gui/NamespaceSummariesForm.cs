@@ -25,6 +25,7 @@ namespace NDoc.Gui
 {
 	using System;
 	using System.Drawing;
+	using System.Collections;
 	using System.Collections.Specialized;
 	using System.ComponentModel;
 	using System.Windows.Forms;

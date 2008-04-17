@@ -15,11 +15,11 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 using System;
+using System.Collections;
 using System.Diagnostics;
 using System.Xml;
 using System.Text;
 using System.IO;
-using System.Collections.Generic;
 
 namespace NDoc.Core.Reflection
 {
@@ -28,8 +28,8 @@ namespace NDoc.Core.Reflection
 	/// </summary>
 	internal class AssemblyXmlDocCache
 	{
-		private IDictionary<string,string> docs;
-		private IDictionary<string,Object> excludeTags;
+		private Hashtable docs;
+		private Hashtable excludeTags;
 
 		/// <summary>
 		/// Creates a new instance of the <see cref="AssemblyXmlDocCache"/> class.
@@ -44,8 +44,8 @@ namespace NDoc.Core.Reflection
 		/// </summary>
 		public void Flush()
 		{
-			docs = new Dictionary<string,string>();
-            excludeTags = new Dictionary<string, Object>();
+			docs = new Hashtable();
+			excludeTags = new Hashtable();
 		}
 
 
@@ -225,7 +225,7 @@ namespace NDoc.Core.Reflection
 			{
 				if (node.NodeType == XmlNodeType.Element) 
 				{
-					IDictionary<string,Object> linkTable=null;
+					Hashtable linkTable=null;
 					MarkupSeeLinks(ref linkTable, id, node);
 				}
 			}
@@ -237,7 +237,7 @@ namespace NDoc.Core.Reflection
 		/// <param name="linkTable">A table of previous links.</param>
 		/// <param name="id">current member name 'id'</param>
 		/// <param name="node">an Xml Node containing a doc tag</param>
-		private void MarkupSeeLinks(ref IDictionary<string,Object> linkTable, string id, XmlNode node)
+		private void MarkupSeeLinks(ref Hashtable linkTable, string id, XmlNode node)
 		{
 			if (node.LocalName=="see")
 			{
@@ -257,7 +257,7 @@ namespace NDoc.Core.Reflection
 						{
 							//assume an resonable initial table size,
 							//so we don't have to resize often.
-							linkTable = new Dictionary<string,Object>(16);
+							linkTable = new Hashtable(16);
 						}
 						if (linkTable.ContainsKey(cref.Value))
 						{

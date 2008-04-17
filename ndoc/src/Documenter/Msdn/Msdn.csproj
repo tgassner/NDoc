@@ -164,7 +164,6 @@
     <EmbeddedResource Include="images\static.gif" />
     <EmbeddedResource Include="MsdnUrlValidator.resx">
       <DependentUpon>MsdnUrlValidator.cs</DependentUpon>
-      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="onlinefiles\tree.css" />
     <EmbeddedResource Include="onlinefiles\tree.js" />

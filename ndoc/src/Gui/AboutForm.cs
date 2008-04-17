@@ -15,13 +15,13 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 using System;
+using System.Collections;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.ComponentModel;
 using System.Reflection;
 using System.Windows.Forms;
-using System.Collections.Generic;
 
 namespace NDoc.Gui
 {
@@ -84,7 +84,7 @@ namespace NDoc.Gui
 			try 
 			{
 				// Get all modules
-                IList<ListViewItem> ndocItems = new List<ListViewItem>();
+				ArrayList ndocItems = new ArrayList();
 				foreach (ProcessModule module in Process.GetCurrentProcess().Modules)
 				{
 					ListViewItem item = new ListViewItem();
