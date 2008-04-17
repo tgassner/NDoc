@@ -31,7 +31,7 @@
 #define USE_XML_DOCUMENT
 
 using System;
-//using System.Collections;
+using System.Collections;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -44,7 +44,6 @@ using System.Reflection;
 
 using NDoc.Core;
 using NDoc.Core.Reflection;
-using System.Collections.Generic;
 
 namespace NDoc.Documenter.LinearHtml
 {
@@ -97,11 +96,11 @@ namespace NDoc.Documenter.LinearHtml
 		/// <summary>A hashtable from namespace name to Hashtables which
 		/// go from section name (Classes, Interfaces, etc) to XmlTextWriters
 		/// for that section.</summary>
-		IDictionary<string,IDictionary<string,XmlTextWriter>> namespaceWriters; // namespace name -> Hashtables (of writers for each section)
+		Hashtable namespaceWriters; // namespace name -> Hashtables (of writers for each section)
 
 		/// <summary>Hashtable from xml node name to section name. For example
 		/// class to Classes.</summary>
-		IDictionary<string,string> namespaceSections; // xml node name -> section name
+		Hashtable namespaceSections; // xml node name -> section name
 
 		/// <summary>
 		/// The namespace sections in the order they will be emitted.
@@ -142,9 +141,9 @@ namespace NDoc.Documenter.LinearHtml
 		/// </summary>
 		public LinearHtmlDocumenter( LinearHtmlDocumenterConfig config ) : base( config )
 		{
-			namespaceWriters = new Dictionary<string,IDictionary<string,XmlTextWriter>>();
+			namespaceWriters = new Hashtable();
 
-			namespaceSections = new Dictionary<string,string>();
+			namespaceSections = new Hashtable();
 			namespaceSections.Add("typeList", "Type List"); // writer for list of types in namespace
 			namespaceSections.Add("class", "Classes");
 			namespaceSections.Add("interface", "Interfaces");
@@ -405,17 +404,17 @@ namespace NDoc.Documenter.LinearHtml
 			if (namespaceListWriter != null) namespaceListWriter.Close();
 			namespaceListWriter = null;
 
-			IList<string> nsSectionList = new List<string>(orderedNamespaceSections);
+			ArrayList nsSectionList = new ArrayList(orderedNamespaceSections);
 			nsSectionList.Insert(0, "typeList"); // use this for the type list too
 
 			foreach(string namespaceName in namespaceWriters.Keys)
 			{
-                IDictionary<string, XmlTextWriter> nsSectionWriters = namespaceWriters[namespaceName];
+				Hashtable nsSectionWriters = (Hashtable)namespaceWriters[namespaceName];
 
 				foreach(string sectionKey in nsSectionList)
 				{
-					string sectionName = namespaceSections[sectionKey];
-					XmlTextWriter xtw = nsSectionWriters[sectionName];
+					string sectionName = (string)namespaceSections[sectionKey];
+					XmlTextWriter xtw = (XmlTextWriter)nsSectionWriters[sectionName];
 					if (xtw != null) 
 					{
 						xtw.Close();
@@ -440,9 +439,9 @@ namespace NDoc.Documenter.LinearHtml
 		void StartNamespaceSectionWriter(string namespaceName, string sectionName)
 		{
 			if (!namespaceWriters.ContainsKey(namespaceName)) 
-				namespaceWriters.Add(namespaceName, new Dictionary<string,XmlTextWriter>());
+				namespaceWriters.Add(namespaceName, new Hashtable());
 
-            IDictionary<string, XmlTextWriter> nsSectionWriters = namespaceWriters[namespaceName];
+			Hashtable nsSectionWriters = (Hashtable)namespaceWriters[namespaceName];
 			if (!nsSectionWriters.ContainsKey(sectionName))
 			{
 				Trace.WriteLine(String.Format("Added section writer: ns {0} section {1}", 
@@ -450,7 +449,7 @@ namespace NDoc.Documenter.LinearHtml
 				nsSectionWriters.Add(sectionName, new XmlTextWriter(new MemoryStream(),
 					Encoding.UTF8));
 
-				XmlTextWriter xtw = nsSectionWriters[sectionName];
+				XmlTextWriter xtw = (XmlTextWriter)nsSectionWriters[sectionName];
 				//xtw.Formatting = Formatting.Indented;
 				xtw.Indentation = 4;
 
@@ -537,9 +536,9 @@ namespace NDoc.Documenter.LinearHtml
 		/// <param name="localName">The localname to select.</param>
 		/// <param name="nav">The XPathNavigator.</param>
 		/// <returns>A new ArrayList of XPathNavigators.</returns>
-		IList<XPathNavigator> GetChildren(XPathNavigator nav, string localName)
+		ArrayList GetChildren(XPathNavigator nav, string localName)
 		{
-            IList<XPathNavigator> list = new List<XPathNavigator>();
+			ArrayList list = new ArrayList();
 
 			XPathNavigator children = nav.Clone();
 			children.MoveToFirstChild();
@@ -562,9 +561,9 @@ namespace NDoc.Documenter.LinearHtml
 		/// <param name="localName">The localname to select.</param>
 		/// <param name="nav">The XPathNavigator.</param>
 		/// <returns>A new ArrayList of XPathNavigators.</returns>
-        IList<XPathNavigator> GetDescendants(XPathNavigator nav, string localName)
+		ArrayList GetDescendants(XPathNavigator nav, string localName)
 		{
-            IList<XPathNavigator> list = new List<XPathNavigator>();
+			ArrayList list = new ArrayList();
 
 			XPathNodeIterator iter = nav.SelectDescendants(localName, "", false);
 			while(iter.MoveNext())
@@ -590,9 +589,9 @@ namespace NDoc.Documenter.LinearHtml
 		/// <param name="localName">The localName of child nodes to select.</param>
 		/// <returns>The SortedList of child node attribute values to 
 		/// XPathNavigators.</returns>
-		SortedList<string, XPathNavigator> GetSortedChildren(XPathNavigator nav, string localName, string attrName)
+		SortedList GetSortedChildren(XPathNavigator nav, string localName, string attrName)
 		{
-            SortedList<string, XPathNavigator> sortedList = new SortedList<string, XPathNavigator>();
+			SortedList sortedList = new SortedList();
 
 			XPathNavigator children = nav.Clone();
 			children.MoveToFirstChild();
@@ -1083,8 +1082,8 @@ namespace NDoc.Documenter.LinearHtml
 		{
 			// get a writer for this namespace's type list
 			StartNamespaceSectionWriter(namespaceName, "Type List");
-			IDictionary<string,XmlTextWriter> nsSectionWriters = namespaceWriters[namespaceName];
-			XmlTextWriter xtw = nsSectionWriters["Type List"];
+			Hashtable nsSectionWriters = (Hashtable)namespaceWriters[namespaceName];
+			XmlTextWriter xtw = (XmlTextWriter)nsSectionWriters["Type List"];
 
 			string[] colNames = { "Type", "Summary" };
 
@@ -1092,16 +1091,16 @@ namespace NDoc.Documenter.LinearHtml
 			foreach(string sectionName in orderedNamespaceSections)
 			{
 				// alphabetize
-				SortedList<string,XPathNavigator> sortedList = GetSortedChildren(nav, sectionName, "name");
+				SortedList sortedList = GetSortedChildren(nav, sectionName, "name");
 
 				if (sortedList.Count > 0)
 				{
-					xtw.WriteElementString("h3", namespaceSections[sectionName]);
+					xtw.WriteElementString("h3", (string)namespaceSections[sectionName]);
 					this.StartTable(xtw, namespaceName + "_TypeList_" + sectionName, 600, colNames);
-					foreach(KeyValuePair<string,XPathNavigator> entry in sortedList)
+					foreach(DictionaryEntry entry in sortedList)
 					{
-						string typeName = entry.Key;
-						XPathNavigator n = entry.Value;
+						string typeName = (string)entry.Key;
+						XPathNavigator n = (XPathNavigator)entry.Value;
 
 						if (TypeMatchesIncludeRegexp(n))
 						{
@@ -1165,12 +1164,12 @@ namespace NDoc.Documenter.LinearHtml
 			if (namespaceSections.ContainsKey(nodeType))
 			{
 				// write to appropriate writer
-				string sectionName = namespaceSections[nodeType];
+				string sectionName = (string)namespaceSections[nodeType];
 				StartNamespaceSectionWriter(namespaceName, sectionName);
 					
 				// now write members
-                IDictionary<string, XmlTextWriter> nsSectionWriters = namespaceWriters[namespaceName];
-				XmlTextWriter xtw = nsSectionWriters[sectionName];
+				Hashtable nsSectionWriters = (Hashtable)namespaceWriters[namespaceName];
+				XmlTextWriter xtw = (XmlTextWriter)nsSectionWriters[sectionName];
 
 				if (useXslt)
 				{
@@ -1244,9 +1243,9 @@ namespace NDoc.Documenter.LinearHtml
 			//
 			// collect navigators to various members by category
 			//
-            IDictionary<string, IDictionary<string, XPathNavigator>> memberTypeHt = new Dictionary<string, IDictionary<string, XPathNavigator>>(); // memberType -> Hashtable (id -> navigator)
+			Hashtable memberTypeHt = new Hashtable(); // memberType -> Hashtable (id -> navigator)
 			nav.MoveToFirstChild();
-            IDictionary<string, XPathNavigator> navTable;
+			Hashtable navTable;
 
 			do 
 			{
@@ -1257,9 +1256,9 @@ namespace NDoc.Documenter.LinearHtml
 				if (!memberTypeHt.ContainsKey(memberType)) 
 				{
 					//Console.WriteLine("Add member type {0}", memberType);
-                    memberTypeHt.Add(memberType, new Dictionary<string, XPathNavigator>());
+					memberTypeHt.Add(memberType, new Hashtable());
 				}
-				navTable = memberTypeHt[memberType];
+				navTable = (Hashtable)memberTypeHt[memberType];
 				if (!navTable.ContainsKey(memberId)) navTable.Add(memberId, nav.Clone());
 			} while(nav.MoveToNext());
 
@@ -1279,8 +1278,8 @@ namespace NDoc.Documenter.LinearHtml
 			XPathNavigator remarksNav = null;
 			if (memberTypeHt.ContainsKey("documentation"))
 			{
-				navTable = memberTypeHt["documentation"];
-				XPathNavigator nav2 = navTable[String.Empty];
+				navTable = (Hashtable)memberTypeHt["documentation"];
+				XPathNavigator nav2 = (XPathNavigator)navTable[String.Empty];
 				XPathNavigator summaryNav = GetDescendantNodeWithName(nav2, "summary");
 				remarksNav = GetDescendantNodeWithName(nav2, "remarks");
 
@@ -1290,16 +1289,16 @@ namespace NDoc.Documenter.LinearHtml
 			// attributes
 			if (memberTypeHt.ContainsKey("attribute"))
 			{
-				navTable = memberTypeHt["attribute"];
+				navTable = (Hashtable)memberTypeHt["attribute"];
 				StringBuilder sb = new StringBuilder("This type has the following attributes: ");
 
 				bool first = true;
 				foreach(string memberId in navTable.Keys)
 				{
 					if (!first) { sb.Append(", "); first = false; }
-					//XPathNavigator nav2 = navTable[memberId];
+					//XPathNavigator nav2 = (XPathNavigator)navTable[memberId];
 					//this.DumpNavTree(nav2, "    ");
-					string tmps = (navTable[memberId]).GetAttribute("name", "");
+					string tmps = ((XPathNavigator)navTable[memberId]).GetAttribute("name", "");
 					sb.Append(tmps);
 				}
 				xtw.WriteElementString("p", sb.ToString());
@@ -1331,14 +1330,14 @@ namespace NDoc.Documenter.LinearHtml
 					//
 					// create a table entry for each member of this Type
 					//
-					navTable = memberTypeHt[memberType]; // memberId -> navigator
+					navTable = (Hashtable)memberTypeHt[memberType]; // memberId -> navigator
 
 					// sort by member id (approximately the member name?)
-                    SortedList<string, XPathNavigator> sortedMemberIds = new SortedList<string, XPathNavigator>(navTable);
+					SortedList sortedMemberIds = new SortedList(navTable);
 
 					foreach(string memberId in sortedMemberIds.Keys)
 					{
-						XPathNavigator nav2 = navTable[memberId];
+						XPathNavigator nav2 = (XPathNavigator)navTable[memberId];
 						string memberName = nav2.GetAttribute("name", "");
 
 						// get summary
@@ -1371,9 +1370,9 @@ namespace NDoc.Documenter.LinearHtml
 					{
 						string capsMemberType = char.ToUpper(memberType[0]) + memberType.Substring(1);
 						xtw.WriteElementString("h4", String.Format("{0} Members", capsMemberType));
-						navTable = memberTypeHt[memberType]; // memberId -> navigator
+						navTable = (Hashtable)memberTypeHt[memberType]; // memberId -> navigator
 						// sort by member id (approximately the member name?)
-						SortedList<string,XPathNavigator> sortedMemberIds = new SortedList<string,XPathNavigator>(navTable);
+						SortedList sortedMemberIds = new SortedList(navTable);
 
 						if (MyConfig.IncludeTypeMemberDetails && 
 							(memberType.Equals("method") || memberType.Equals("constructor")))
@@ -1381,7 +1380,7 @@ namespace NDoc.Documenter.LinearHtml
 							// method, with details
 							foreach(string memberId in sortedMemberIds.Keys)
 							{
-								XPathNavigator nav2 = navTable[memberId];
+								XPathNavigator nav2 = (XPathNavigator)navTable[memberId];
 								MakeHtmlDetailsForMethod(nodeName, memberType, nav2, xtw);
 							}
 						}
@@ -1396,7 +1395,7 @@ namespace NDoc.Documenter.LinearHtml
 							//
 							foreach(string memberId in sortedMemberIds.Keys)
 							{
-								XPathNavigator nav2 = navTable[memberId];
+								XPathNavigator nav2 = (XPathNavigator)navTable[memberId];
 								MakeHtmlForTypeMember(nodeName, memberType, nav2, xtw);
 							}
 
@@ -1534,8 +1533,8 @@ namespace NDoc.Documenter.LinearHtml
 		private void MakeHtmlForMethodParameterDetails(XPathNavigator nav, XmlTextWriter xtw)
 		{
 			// add params
-			IList<XPathNavigator> parameterList = GetChildren(nav, "parameter");
-            IList<XPathNavigator> paramList = GetDescendants(nav, "param");
+			ArrayList parameterList = GetChildren(nav, "parameter");
+			ArrayList paramList = GetDescendants(nav, "param");
 
 			if (parameterList.Count > 0)
 			{
@@ -1612,7 +1611,7 @@ namespace NDoc.Documenter.LinearHtml
 			StringBuilder sb = new StringBuilder();
 
 			// add params
-            IList<XPathNavigator> paramList = GetChildren(nav, "parameter");
+			ArrayList paramList = GetChildren(nav, "parameter");
 			if (paramList.Count > 0)
 			{
 				bool first = true;
@@ -1654,7 +1653,7 @@ namespace NDoc.Documenter.LinearHtml
 			if (baseType.Length > 0) declarationString += " : " + baseType;
 
 			// add interfaces to declaration string
-            IList<XPathNavigator> implKids = GetChildren(nav, "implements");
+			ArrayList implKids = GetChildren(nav, "implements");
 			if (implKids.Count > 0)
 			{
 				// add appropriate separator
@@ -1731,24 +1730,24 @@ namespace NDoc.Documenter.LinearHtml
 			XmlTextWriter xtw;
 
 			// build list of sections for namespaces
-            IList<string> nsSectionList = new List<string>(orderedNamespaceSections);
+			ArrayList nsSectionList = new ArrayList(orderedNamespaceSections);
 			nsSectionList.Insert(0, "typeList"); // use this for the type list too
 
 			foreach(string namespaceName in namespaceWriters.Keys)
 			{
 				topWriter.WriteElementString("h1", "Namespace : " + namespaceName);
 				topWriter.Flush();
-				IDictionary<string,XmlTextWriter> nsSectionWriters = namespaceWriters[namespaceName];
+				Hashtable nsSectionWriters = (Hashtable)namespaceWriters[namespaceName];
 
 				foreach(string sectionKey in nsSectionList)
 				{
-					string sectionName = namespaceSections[sectionKey];
+					string sectionName = (string)namespaceSections[sectionKey];
 
 					xtw = null;
 					if (nsSectionWriters.ContainsKey(sectionName))
 					{
 						// so something was written to this section
-						xtw = nsSectionWriters[sectionName];
+						xtw = (XmlTextWriter)nsSectionWriters[sectionName];
 						xtw.Flush();
 
 						// copy to output stream

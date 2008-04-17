@@ -21,9 +21,9 @@ using System.Text;
 using System.Reflection;
 using System.Windows.Forms;
 using System.Globalization;
+using System.Collections;
 using System.Diagnostics;
 using System.Threading;
-using System.Collections.Generic;
 
 namespace NDoc.Gui
 {
@@ -66,8 +66,7 @@ namespace NDoc.Gui
 		{
 			get
 			{
-				//Uri uri = new Uri( Assembly.GetExecutingAssembly().CodeBase, true );  //deprecated
-                Uri uri = new Uri(Assembly.GetExecutingAssembly().CodeBase);
+				Uri uri = new Uri( Assembly.GetExecutingAssembly().CodeBase, true );
 				return Path.GetDirectoryName( uri.AbsolutePath );
 			}
 		}
@@ -166,8 +165,7 @@ namespace NDoc.Gui
 			ReflectionTypeLoadException rtle = ex as ReflectionTypeLoadException;
 			if (rtle != null)
 			{
-                IDictionary<string,Object> fileLoadExceptions = new Dictionary<string,Object>();
-
+				Hashtable fileLoadExceptions = new Hashtable();
 				foreach (Exception loaderEx in rtle.LoaderExceptions)
 				{
 					System.IO.FileLoadException fileLoadEx = loaderEx as System.IO.FileLoadException;

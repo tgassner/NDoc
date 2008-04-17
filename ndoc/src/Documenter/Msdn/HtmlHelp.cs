@@ -16,6 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 using System;
+using System.Collections;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -25,7 +26,6 @@ using System.Globalization;
 using Microsoft.Win32;
 
 using NDoc.Core;
-using System.Collections.Generic;
 
 namespace NDoc.Documenter.Msdn
 {
@@ -48,7 +48,7 @@ namespace NDoc.Documenter.Msdn
 
 		private StreamWriter streamHtmlHelp = null;
 
-		private IList<string> _tocFiles = new List<string>();
+		private ArrayList _tocFiles = new ArrayList();
 
 		private XmlTextWriter tocWriter;
 

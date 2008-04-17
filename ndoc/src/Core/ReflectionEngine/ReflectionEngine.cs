@@ -28,7 +28,6 @@ using System.Text;
 using System.Xml;
 using System.Xml.XPath;
 using System.ComponentModel;
-using System.Collections.Generic;
 
 namespace NDoc.Core.Reflection
 {
@@ -67,14 +66,14 @@ namespace NDoc.Core.Reflection
 		/// <param name="rep">ReflectionEngine Parameters.</param>
 		/// <param name="assemblyFile">Assembly file name.</param>
 		/// <returns></returns>
-		public SortedList<string,Object> GetNamespacesFromAssembly(ReflectionEngineParameters rep, string assemblyFile)
+		public SortedList GetNamespacesFromAssembly(ReflectionEngineParameters rep, string assemblyFile)
 		{
 			this.rep = rep;
 			assemblyLoader = SetupAssemblyLoader();
 			try
 			{
 				Assembly a = assemblyLoader.LoadAssembly(assemblyFile);
-				SortedList<string,Object> namespaces = new SortedList<string,Object>();
+				SortedList namespaces = new SortedList();
 
 				foreach (Type t in a.GetTypes())
 				{
