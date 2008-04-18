@@ -256,6 +256,7 @@
     <None Include="Core.build" />
     <EmbeddedResource Include="AttributesForm.resx">
       <DependentUpon>AttributesForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="graphics\folder.bmp" />
     <EmbeddedResource Include="graphics\folderpin.bmp" />
@@ -263,15 +264,19 @@
     <EmbeddedResource Include="graphics\multifolderpin.bmp" />
     <EmbeddedResource Include="ReferencePathCollectionEditorForm.resx">
       <DependentUpon>ReferencePathCollectionEditorForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="RuntimePropertyGrid.resx">
       <DependentUpon>RuntimePropertyGrid.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="SimpleEdit.resx">
       <DependentUpon>SimpleEdit.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="TextEditorForm.resx">
       <DependentUpon>TextEditorForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <Content Include="graphics\Red Folder.ico" />
   </ItemGroup>
