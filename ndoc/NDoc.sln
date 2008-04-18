@@ -36,13 +36,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Intellisense", "src\Documen
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F7DE813E-7826-4D21-8198-7639D8042AA6}"
 	ProjectSection(SolutionItems) = preProject
-		src\CommonAssemblyInfo.cs = src\CommonAssemblyInfo.cs
 		COPYING.txt = COPYING.txt
 		NDoc.build = NDoc.build
 		NDoc.build.include = NDoc.build.include
 		NDoc.build.package = NDoc.build.package
 		README.txt = README.txt
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NDocVisualStudioAddIn", "src\NDocVisualStudioAddIn\NDocVisualStudioAddIn.csproj", "{51010359-D171-450F-BE88-5BA43F1C29FE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -279,6 +280,21 @@ Global
 		{B09E5CDA-AA48-48A0-BC4F-100243D71922}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{B09E5CDA-AA48-48A0-BC4F-100243D71922}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{B09E5CDA-AA48-48A0-BC4F-100243D71922}.Release|Win32.ActiveCfg = Release|Any CPU
+		{51010359-D171-450F-BE88-5BA43F1C29FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{51010359-D171-450F-BE88-5BA43F1C29FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{51010359-D171-450F-BE88-5BA43F1C29FE}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{51010359-D171-450F-BE88-5BA43F1C29FE}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{51010359-D171-450F-BE88-5BA43F1C29FE}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{51010359-D171-450F-BE88-5BA43F1C29FE}.Deploy|Any CPU.ActiveCfg = Debug|Any CPU
+		{51010359-D171-450F-BE88-5BA43F1C29FE}.Deploy|Any CPU.Build.0 = Debug|Any CPU
+		{51010359-D171-450F-BE88-5BA43F1C29FE}.Deploy|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{51010359-D171-450F-BE88-5BA43F1C29FE}.Deploy|Mixed Platforms.Build.0 = Debug|Any CPU
+		{51010359-D171-450F-BE88-5BA43F1C29FE}.Deploy|Win32.ActiveCfg = Debug|Any CPU
+		{51010359-D171-450F-BE88-5BA43F1C29FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{51010359-D171-450F-BE88-5BA43F1C29FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{51010359-D171-450F-BE88-5BA43F1C29FE}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{51010359-D171-450F-BE88-5BA43F1C29FE}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{51010359-D171-450F-BE88-5BA43F1C29FE}.Release|Win32.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
