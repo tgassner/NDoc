@@ -44,6 +44,7 @@
     <Compile Include="Connect.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="ProjectConfigPlugin.cs" />
     <Compile Include="ProjectPlugin.cs" />
     <Compile Include="SolutionPlugin.cs" />
   </ItemGroup>

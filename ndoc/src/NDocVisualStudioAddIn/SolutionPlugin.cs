@@ -9,7 +9,7 @@ namespace NDocVisualStudioAddIn {
     public class SolutionPlugin : NDoc.VisualStudio.ISolution {
 
         private DTE2 _applicationObject;
-        protected IDictionary<Guid, IProject> _projects = new Dictionary<Guid, IProject>();
+        protected IDictionary<string, IProject> _projects = new Dictionary<string, IProject>();
 
         public SolutionPlugin(DTE2 _applicationObject) {
             this._applicationObject = _applicationObject;
@@ -76,7 +76,9 @@ namespace NDocVisualStudioAddIn {
 
         public string Name {
             get {
-                return System.IO.Path.GetFileNameWithoutExtension(this._applicationObject.Solution.FullName);
+                return getSolutionProperty("Name");
+                //return System.IO.Path.GetFileNameWithoutExtension(this._applicationObject.Solution.FullName);
+
             }
         }
 
@@ -84,9 +86,7 @@ namespace NDocVisualStudioAddIn {
             get {
                 switch (this._applicationObject.Version) {
                     case "9.0": return NDoc.VisualStudio.IdeType.Studio2008;
-                        break;
                     case "8.0": return NDoc.VisualStudio.IdeType.Studio2005;
-                        break;
                     default: return NDoc.VisualStudio.IdeType.Unknown;
                 }
             }
@@ -95,6 +95,15 @@ namespace NDocVisualStudioAddIn {
         public int ProjectCount {
             get {
                 return _projects.Count;
+            }
+        }
+
+        private string getSolutionProperty(string key) {
+            try {
+                EnvDTE.Solution sln = this._applicationObject.Solution;
+                return sln.Properties.Item(key).Value.ToString();
+            } catch (Exception) {
+                return string.Empty;
             }
         }
     }
