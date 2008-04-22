@@ -11,7 +11,6 @@ namespace NDoc.VisualStudio {
         string Directory {
             get;
         }
-        ICollection<ConfigurationElements> GetConfigurations();
         ICollection<string> GetConfigurationsNames();
         IProject GetProject(string name);
         string GetProjectConfigName(string solutionConfig, string projectId);
@@ -34,7 +33,7 @@ namespace NDoc.VisualStudio {
         IProjectConfig GetConfiguration(string configName);
         string GetRelativeOutputPathForConfiguration(string configName);
         string GetRelativePathToDocumentationFile(string configName);
-        Guid ID {
+        string ID {
             get;
         }
         string Name {

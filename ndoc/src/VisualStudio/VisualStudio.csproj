@@ -105,7 +105,47 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="VisualStudioFactory.cs" />
+    <None Include="Debug\NDocGui.exe.manifest" />
+    <None Include="Debug\NDocGui.vshost.exe.manifest" />
     <None Include="VisualStudio.build" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Debug\Interop.MSHelpCompiler.dll" />
+    <Content Include="Debug\NDoc.Core.dll" />
+    <Content Include="Debug\NDoc.Core.pdb" />
+    <Content Include="Debug\NDoc.Core.xml" />
+    <Content Include="Debug\NDoc.Documenter.Intellisense.dll" />
+    <Content Include="Debug\NDoc.Documenter.Intellisense.pdb" />
+    <Content Include="Debug\NDoc.Documenter.JavaDoc.dll" />
+    <Content Include="Debug\NDoc.Documenter.JavaDoc.pdb" />
+    <Content Include="Debug\NDoc.Documenter.JavaDoc.xml" />
+    <Content Include="Debug\NDoc.Documenter.Latex.dll" />
+    <Content Include="Debug\NDoc.Documenter.Latex.pdb" />
+    <Content Include="Debug\NDoc.Documenter.Latex.xml" />
+    <Content Include="Debug\NDoc.Documenter.LinearHtml.dll" />
+    <Content Include="Debug\NDoc.Documenter.LinearHtml.pdb" />
+    <Content Include="Debug\NDoc.Documenter.LinearHtml.xml" />
+    <Content Include="Debug\NDoc.Documenter.Msdn.dll" />
+    <Content Include="Debug\NDoc.Documenter.Msdn.pdb" />
+    <Content Include="Debug\NDoc.Documenter.Msdn.xml" />
+    <Content Include="Debug\NDoc.Documenter.Msdn2.dll" />
+    <Content Include="Debug\NDoc.Documenter.Msdn2.pdb" />
+    <Content Include="Debug\NDoc.Documenter.Msdn2.xml" />
+    <Content Include="Debug\NDoc.Documenter.NativeHtmlHelp2.dll" />
+    <Content Include="Debug\NDoc.Documenter.NativeHtmlHelp2.pdb" />
+    <Content Include="Debug\NDoc.Documenter.NativeHtmlHelp2.xml" />
+    <Content Include="Debug\NDoc.Documenter.Xml.dll" />
+    <Content Include="Debug\NDoc.Documenter.Xml.pdb" />
+    <Content Include="Debug\NDoc.Documenter.Xml.xml" />
+    <Content Include="Debug\NDoc.ExtendedUI.dll" />
+    <Content Include="Debug\NDoc.ExtendedUI.pdb" />
+    <Content Include="Debug\NDoc.VisualStudio.dll" />
+    <Content Include="Debug\NDoc.VisualStudio.pdb" />
+    <Content Include="Debug\NDoc.VisualStudio.xml" />
+    <Content Include="Debug\NDocGui.exe" />
+    <Content Include="Debug\NDocGui.pdb" />
+    <Content Include="Debug\NDocGui.vshost.exe" />
+    <Content Include="Debug\NDocGui.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

@@ -61,10 +61,10 @@ namespace NDoc.VisualStudio
 
         public abstract string GetRelativePathToDocumentationFile(string configName);
 
-        protected Guid _ID;
+        protected string _ID;
 
         /// <summary>Gets the GUID that identifies the project.</summary>
-        public Guid ID {
+        public string ID {
             get {
                 return _ID;
             }
@@ -164,7 +164,7 @@ namespace NDoc.VisualStudio
 	/// </summary>
 	public class Project0203 : Project
 	{
-        internal Project0203(ISolution solution, Guid id, string name, ProjektType projectType)
+        internal Project0203(ISolution solution, string id, string name, ProjektType projectType)
 		{
 			_Solution = solution;
 			_ID = id;
@@ -318,7 +318,7 @@ namespace NDoc.VisualStudio
     /// </summary>
     public class Project0508 : Project {
 
-        internal Project0508(ISolution solution, Guid id, string name, ProjektType type) {
+        internal Project0508(ISolution solution, string id, string name, ProjektType type) {
             _Solution = solution;
             _ID = id;
             _Name = name;

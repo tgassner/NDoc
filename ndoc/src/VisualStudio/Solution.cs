@@ -45,64 +45,64 @@ namespace NDoc.VisualStudio {
         Unknown
     }
 
-    //ToDo: Description for this Class
-    public class ConfigurationElements {
-        private IList<string> _platforms;
-        private IDictionary<Guid, ProjectElements> _projects;  //<project Guid,configs und Platforms of the Project>
+    ////ToDo: Description for this Class
+    //public class ConfigurationElements {
+    //    private IList<string> _platforms;
+    //    private IDictionary<Guid, ProjectElements> _projects;  //<project Guid,configs und Platforms of the Project>
 
-        public ConfigurationElements() {
-            this._platforms = new List<string>();
-            this._projects = new Dictionary<Guid, ProjectElements>();
-        }
+    //    public ConfigurationElements() {
+    //        this._platforms = new List<string>();
+    //        this._projects = new Dictionary<Guid, ProjectElements>();
+    //    }
 
-        public IList<string> Platforms {
-            get {
-                return this._platforms;
-            }
-        }
+    //    public IList<string> Platforms {
+    //        get {
+    //            return this._platforms;
+    //        }
+    //    }
 
-        public IDictionary<Guid, ProjectElements> Projects {
-            get {
-                return this._projects;
-            }
-        }
-    }
+    //    public IDictionary<Guid, ProjectElements> Projects {
+    //        get {
+    //            return this._projects;
+    //        }
+    //    }
+    //}
 
-    //ToDo: Descritopns for this Class
-    public struct ProjectElements {
-        private string _projectConfig;
-        private string _platform;
+    ////ToDo: Descritopns for this Class
+    //public struct ProjectElements {
+    //    private string _projectConfig;
+    //    private string _platform;
 
-        public ProjectElements(string projectConfig, string platform) {
-            this._platform = platform;
-            this._projectConfig = projectConfig;
-        }
+    //    public ProjectElements(string projectConfig, string platform) {
+    //        this._platform = platform;
+    //        this._projectConfig = projectConfig;
+    //    }
 
-        public string ProjectConfig {
-            get {
-                return this._projectConfig;
-            }
-            set {
-                this._projectConfig = value;
-            }
-        }
+    //    public string ProjectConfig {
+    //        get {
+    //            return this._projectConfig;
+    //        }
+    //        set {
+    //            this._projectConfig = value;
+    //        }
+    //    }
 
-        public string Platform {
-            get {
-                return this._platform;
-            }
-            set {
-                this._platform = value;
-            }
-        }
-    }
+    //    public string Platform {
+    //        get {
+    //            return this._platform;
+    //        }
+    //        set {
+    //            this._platform = value;
+    //        }
+    //    }
+    //}
 
     /// <summary>
     /// Abstract representation of a Visual Studio solution file.
     /// </summary>
     public abstract class Solution : ISolution {
 
-        protected IDictionary<Guid, IProject> _projects = new Dictionary<Guid,IProject>();
+        protected IDictionary<string, IProject> _projects = new Dictionary<string,IProject>();
 
         protected string _directory;
 
@@ -115,18 +115,18 @@ namespace NDoc.VisualStudio {
             }
         }
 
-        protected Dictionary<string, Dictionary<Guid, string>> _configurations = new Dictionary<string, Dictionary<Guid, string>>();
-        protected Dictionary<string, Dictionary<Guid, string>> _platforms = new Dictionary<string, Dictionary<Guid, string>>();
-        protected Dictionary<string, Dictionary<Guid, string>> _configurationAndPlatforms = new Dictionary<string, Dictionary<Guid, string>>();
+        protected Dictionary<string, Dictionary<string, string>> _configurations = new Dictionary<string, Dictionary<string, string>>();
+        protected Dictionary<string, Dictionary<string, string>> _platforms = new Dictionary<string, Dictionary<string, string>>();
+        protected Dictionary<string, Dictionary<string, string>> _configurationAndPlatforms = new Dictionary<string, Dictionary<string, string>>();
         //protected IDictionary<string, ConfigurationElements> _newConfigurations = new Dictionary<string, ConfigurationElements>();
         
-        /// <summary>
-        /// Get the solution's configurations.
-        /// </summary>
-        /// <returns>A collection of configuration Elements.</returns>
-        public ICollection<ConfigurationElements> GetConfigurations() {
-            return null;
-        }
+        ///// <summary>
+        ///// Get the solution's configurations.
+        ///// </summary>
+        ///// <returns>A collection of configuration Elements.</returns>
+        //public ICollection<ConfigurationElements> GetConfigurations() {
+        //    return null;
+        //}
 
         /// <summary>
         /// Get the solution's configurations Names.
@@ -233,11 +233,11 @@ namespace NDoc.VisualStudio {
         /// or if the project is not marked to be built under the specified
         /// solution configuration.</remarks>
         public override string GetProjectConfigName(string solutionConfig, string projectId) {
-            IDictionary<Guid, string> ce = _configurations[solutionConfig];
+            IDictionary<string, string> ce = _configurations[solutionConfig];
             if (ce == null) {
                 return null;
             } else {
-                return ce[new Guid(projectId)];
+                return ce[projectId];
             }
         }
 
@@ -286,7 +286,7 @@ namespace NDoc.VisualStudio {
                 int eqpos = line.IndexOf('=');
                 string config = line.Substring(eqpos + 2);
 
-                _configurations.Add(config, new Dictionary<Guid,string>());
+                _configurations.Add(config, new Dictionary<string,string>());
             }
         }
 
@@ -306,7 +306,7 @@ namespace NDoc.VisualStudio {
                     string projcfg = match.Groups["projcfg"].Value;
                     //projid = (new Guid(projid)).ToString();
 
-                    _configurations[solcfg].Add(new Guid(projid), projcfg);
+                    _configurations[solcfg].Add(projid, projcfg);
                 }
             }
         }
@@ -329,7 +329,7 @@ namespace NDoc.VisualStudio {
                 //which might have a completely differant structure that we could not handle!
                 if (Project.GetProjectType(projectTypeGUID) == ProjektType.CS) //C# project
 				{
-                    IProject project = VisualStudioFactory.CreateProject(this,new Guid(id), name, Project.GetProjectType(projectTypeGUID));
+                    IProject project = VisualStudioFactory.CreateProject(this,id, name, Project.GetProjectType(projectTypeGUID));
                     string absoluteProjectPath = String.Empty;
 
                     if (path.StartsWith("http:")) {
@@ -418,11 +418,11 @@ namespace NDoc.VisualStudio {
         /// or if the project is not marked to be built under the specified
         /// solution configuration.</remarks>
         public override string GetProjectConfigName(string solutionConfig, string projectId) {
-            IDictionary<Guid, string> ce = _configurationAndPlatforms[solutionConfig];
+            IDictionary<string, string> ce = _configurationAndPlatforms[solutionConfig];
             if (ce == null) {
                 return null;
             } else {
-                return ce[new Guid(projectId)];
+                return ce[projectId];
             }
         }
 
@@ -494,15 +494,15 @@ namespace NDoc.VisualStudio {
                 string platform = configAndPlatform.Substring(configAndPlatform.IndexOf('|') + 1);
 
                 if (!_configurationAndPlatforms.ContainsKey(configAndPlatform)) {
-                    _configurationAndPlatforms.Add(configAndPlatform, new Dictionary<Guid, string>());
+                    _configurationAndPlatforms.Add(configAndPlatform, new Dictionary<string, string>());
                 }
 
                 if (!_configurations.ContainsKey(config)) {
-                    _configurations.Add(config, new Dictionary<Guid, string>());
+                    _configurations.Add(config, new Dictionary<string, string>());
                 }
 
                 if (!_platforms.ContainsKey(platform)) {
-                    _platforms.Add(platform, new Dictionary<Guid, string>());
+                    _platforms.Add(platform, new Dictionary<string, string>());
                 }
             }
         }
@@ -534,7 +534,7 @@ namespace NDoc.VisualStudio {
                     //string[] elements = line.Split(new char[] {'.'});
                     //line.IndexOf('.');
 
-                    Guid projid = new Guid(line.Substring(0, line.IndexOf('.')).Trim());
+                    string projid = line.Substring(0, line.IndexOf('.')).Trim();
 
                     string solcfg = line.Substring(line.IndexOf('.') + 1, line.IndexOf("|") - line.IndexOf('.') - 1);
                     string solConfigPltfm = line.Substring(line.IndexOf('.') + 1);
@@ -578,9 +578,10 @@ namespace NDoc.VisualStudio {
                 //which might have a completely differant structure that we could not handle!
                 switch (Project.GetProjectType(projectTypeGUID)) {
                     case ProjektType.CS:
+                    //case ProjektType.WebSite:
 
                         //Project0203 project = new Project0203(this, new Guid(id), name, Project0203.GetProjectType(projectTypeGUID));
-                        IProject project = VisualStudioFactory.CreateProject(this, new Guid(id), name, Project.GetProjectType(projectTypeGUID));
+                        IProject project = VisualStudioFactory.CreateProject(this, id, name, Project.GetProjectType(projectTypeGUID));
 
                         string absoluteProjectPath = String.Empty;
 

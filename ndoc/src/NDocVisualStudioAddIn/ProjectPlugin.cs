@@ -8,10 +8,12 @@ namespace NDocVisualStudioAddIn {
 
         private DTE2 _applicationObject;
         private string _uniqueName;
+        private NDoc.VisualStudio.ISolution _solution;
 
-        public ProjectPlugin(DTE2 _applicationObject, string uniqueName) {
+        public ProjectPlugin(NDoc.VisualStudio.ISolution solution, DTE2 _applicationObject, string uniqueName) {
             this._applicationObject = _applicationObject;
             this._uniqueName = uniqueName;
+            this._solution = solution;
         }
 
         public string AssemblyName {
@@ -22,22 +24,35 @@ namespace NDocVisualStudioAddIn {
         }
 
         public NDoc.VisualStudio.IProjectConfig GetConfiguration(string configName) {
-            throw new NotImplementedException();
+            string[] configAndPlatform = configName.Split(new char[] { '|' }, StringSplitOptions.None);
+            if (configAndPlatform.Length != 2) {
+                return null;
+            }
+            return new ProjectConfigPlugin(this._applicationObject, this._uniqueName, configAndPlatform[0], configAndPlatform[1]);
+
         }
 
         public string GetRelativeOutputPathForConfiguration(string configName) {
-            //return Path.Combine(
-            //                Path.Combine(FullPath, GetConfiguration(configName).OutputPath),
-            //                OutputFileName);
-            return string.Empty;
+            return System.IO.Path.Combine(
+                            System.IO.Path.Combine(RelativePath, GetConfiguration(configName).OutputPath),
+                            OutputFile);
         }
 
         public string GetRelativePathToDocumentationFile(string configName) {
-            throw new NotImplementedException();
+            string path = string.Empty;
+
+            string documentationFile = GetConfiguration(configName).DocumentationFile;
+
+            if (documentationFile != null && documentationFile.Length > 0) {
+                path = System.IO.Path.Combine(RelativePath, documentationFile);
+            }
+            return path;
         }
 
-        public Guid ID {
-            get { throw new NotImplementedException(); }
+        public string ID {
+            get {
+                return this._uniqueName;
+            }
         }
 
         public string Name {
@@ -54,7 +69,25 @@ namespace NDocVisualStudioAddIn {
         }
 
         public string OutputType {
-            get { throw new NotImplementedException(); }
+            get {
+                //http://msdn2.microsoft.com/en-us/library/aa983979(VS.71).aspx
+                try {
+                    int outputtype = Int32.Parse(this.getProjectProperty(_uniqueName, "OutputType"));
+                    switch (outputtype) {
+                        case 0:
+                            return "WinExe";
+                        case 1:
+                            return "Exe";
+                        case 2:
+                            return "Library";
+                        default:
+                            return string.Empty;
+                    }
+
+                } catch (Exception) {
+                    return string.Empty;
+                }
+            }
         }
 
         public NDoc.VisualStudio.ProjektType Type {
@@ -64,8 +97,13 @@ namespace NDocVisualStudioAddIn {
             }
         }
 
+        /// <summary>
+        /// Readn doesn't need to be implemented, because all needed data 
+        /// can be extracted using the EnvDTE80.DTE2 Object
+        /// </summary>
+        /// <param name="path"></param>
         public void Read(string path) {
-            throw new NotImplementedException();
+            throw new NotImplementedException("public void Read(string path)");
         }
 
         public string RelativePath {
@@ -73,7 +111,7 @@ namespace NDocVisualStudioAddIn {
                 return this.getProjectProperty(_uniqueName, "FullPath");
             }
             set {
-                throw new NotImplementedException();
+                throw new NotImplementedException("ProjectPlugin.RelativePath.set");
             }
         }
 
@@ -84,7 +122,9 @@ namespace NDocVisualStudioAddIn {
         }
 
         public NDoc.VisualStudio.ISolution Solution {
-            get { throw new NotImplementedException(); }
+            get {
+                return _solution;
+            }
         }
 
         private string getProjectProperty(string projectUniqueName, string key) {
@@ -94,6 +134,10 @@ namespace NDocVisualStudioAddIn {
             } catch (Exception) {
                 return string.Empty;
             }
+        }
+
+        public override string ToString() {
+            return String.Format("unique Name: {0}  Name:{1}", this._uniqueName, this.Name);
         }
     }
 }
