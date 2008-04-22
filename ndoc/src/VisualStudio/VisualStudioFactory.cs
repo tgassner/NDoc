@@ -32,7 +32,7 @@ namespace NDoc.VisualStudio {
             }
         }
 
-        static public IProject CreateProject(ISolution solution, Guid id, string name, ProjektType type) {
+        static public IProject CreateProject(ISolution solution, string id, string name, ProjektType type) {
             switch (solution.Ide) {
                 case IdeType.Studio2002:
                 case IdeType.Studio2003:

@@ -24,10 +24,6 @@ namespace NDocVisualStudioAddIn {
             }
         }
 
-        public ICollection<NDoc.VisualStudio.ConfigurationElements> GetConfigurations() {
-            throw new NotImplementedException();
-        }
-
         public ICollection<string> GetConfigurationsNames() {
             IList<string> solCfgs = new List<string>();
             IList<string> solPltfrms = new List<string>();
@@ -55,30 +51,39 @@ namespace NDocVisualStudioAddIn {
         }
 
         public NDoc.VisualStudio.IProject GetProject(string name) {
-            throw new NotImplementedException();
+            throw new NotImplementedException("public NDoc.VisualStudio.IProject GetProject(string name)");
             //this._applicationObject.Solution.Projects.Item(0).
         }
 
         public string GetProjectConfigName(string solutionConfig, string projectId) {
-            throw new NotImplementedException();
-            //IDictionary<Guid, string> ce = _configurationAndPlatforms[solutionConfig];
-            //if (ce == null) {
-            //    return null;
-            //} else {
-            //    return ce[new Guid(projectId)];
-            //}
-            return null;
+            try {
+                string[] configAndPlatform = solutionConfig.Split(new char[] { '|' }, StringSplitOptions.None);
+                if (configAndPlatform.Length != 2) {
+                    return null;
+                }
+                EnvDTE.Project prj = _applicationObject.Solution.Projects.Item(1);
+                Configuration config = prj.ConfigurationManager.Item(configAndPlatform[0],configAndPlatform[1]);
+                return config.ConfigurationName + "|" + config.PlatformName;
+            } catch (Exception) {
+                return null;
+            }
         }
 
         public ICollection<NDoc.VisualStudio.IProject> GetProjects() {
-            return _projects.Values;
+            ICollection<IProject> projects = new List<IProject>();
+            foreach (EnvDTE.Project prj in this._applicationObject.Solution.Projects) {
+                if (NDoc.VisualStudio.Project.GetProjectType(prj.Kind) == ProjektType.CS ||
+                    NDoc.VisualStudio.Project.GetProjectType(prj.Kind) == ProjektType.WebSite) {
+                    projects.Add(new ProjectPlugin(this, this._applicationObject, prj.UniqueName));
+                }
+            }
+            return projects;
         }
 
         public string Name {
             get {
                 return getSolutionProperty("Name");
                 //return System.IO.Path.GetFileNameWithoutExtension(this._applicationObject.Solution.FullName);
-
             }
         }
 
@@ -94,7 +99,14 @@ namespace NDocVisualStudioAddIn {
 
         public int ProjectCount {
             get {
-                return _projects.Count;
+                int count = 0;
+                foreach (EnvDTE.Project prj in this._applicationObject.Solution.Projects) {
+                    if (NDoc.VisualStudio.Project.GetProjectType(prj.Kind) == ProjektType.CS ||
+                        NDoc.VisualStudio.Project.GetProjectType(prj.Kind) == ProjektType.WebSite) {
+                        count++;
+                    }
+                }
+                return count;
             }
         }
 
