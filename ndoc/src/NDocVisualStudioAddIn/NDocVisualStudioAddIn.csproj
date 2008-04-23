@@ -124,10 +124,6 @@
       <Project>{8844E0D9-FCA0-419D-9168-BCD420B38378}</Project>
       <Name>LinearHtml</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Documenter\Msdn2\Msdn2.csproj">
-      <Project>{A60FDBA9-A16A-43AA-BCFB-7F545D8500F3}</Project>
-      <Name>Msdn2</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Documenter\Msdn\Msdn.csproj">
       <Project>{8282F072-D966-4075-A8DA-8911E36F4980}</Project>
       <Name>Msdn</Name>
