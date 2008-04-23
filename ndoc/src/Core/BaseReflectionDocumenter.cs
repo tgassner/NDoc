@@ -74,13 +74,31 @@ namespace NDoc.Core.Reflection
 			try 
 			{
 				appDomain = AppDomain.CreateDomain("NDocReflection", 
-					AppDomain.CurrentDomain.Evidence, AppDomain.CurrentDomain.SetupInformation);
+				    AppDomain.CurrentDomain.Evidence, AppDomain.CurrentDomain.SetupInformation);
 				appDomain.SetShadowCopyFiles(); //only required for managed c++ assemblies
-                ReflectionEngine re = (ReflectionEngine)   
-                    appDomain.CreateInstanceAndUnwrap(typeof(ReflectionEngine).Assembly.FullName, 
-                    typeof(ReflectionEngine).FullName, false, BindingFlags.Public | BindingFlags.Instance, 
-                    null, new object[0], CultureInfo.InvariantCulture, new object[0], 
-                    AppDomain.CurrentDomain.Evidence);
+                ReflectionEngine re = null;
+                try {
+                    //re = (ReflectionEngine)
+                    //    appDomain.CreateInstanceAndUnwrap(typeof(ReflectionEngine).Assembly.FullName,
+                    //    typeof(ReflectionEngine).FullName, false, BindingFlags.Public | BindingFlags.Instance,
+                    //    null, new object[0], CultureInfo.InvariantCulture, new object[0],
+                    //    //AppDomain.CurrentDomain.Evidence);
+                    //    new System.Security.Policy.Evidence());
+                    re = new ReflectionEngine();
+                }
+                catch (System.Security.SecurityException e) {
+                    System.Windows.Forms.MessageBox.Show(
+                        e.Message + "\n" + 
+                        e.ToString() + "\n" + 
+                        e.PermissionState + "\n" + 
+                        e.PermissionType.ToString() + "\n" + 
+                        e.RefusedSet + "\n" + 
+                        e.Source + "\n" + 
+                        e.Url + "\n" + 
+                        e.Zone.ToString() + "\n" + 
+                        string.Empty
+                        );
+                }
 				ReflectionEngineParameters rep = new ReflectionEngineParameters(
 					project, MyConfig);
 				re.MakeXmlFile(rep, fileName);

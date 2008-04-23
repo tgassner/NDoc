@@ -1178,6 +1178,45 @@ namespace NDoc.Gui
 				Clear();
 		}
 
+        public void FromExternSolution(NDoc.VisualStudio.ISolution sol, string config){
+            string warningMessages = String.Empty;
+            if ((config == null) || (config == "")) {
+                using (SolutionForm sf = new SolutionForm()) {
+                    sf.Text = "Solution " + sol.Name;
+
+                    sf.ConfigList.Items.Clear();
+
+                    foreach (string configkey in sol.GetConfigurationsNames())
+                        sf.ConfigList.Items.Add(configkey);
+
+                    sf.ShowDialog(this);
+                    if (sf.ConfigList.SelectedIndex < 0)
+                        return;
+
+                    //clear current ndoc project settings
+                    Clear();
+
+                    warningMessages = LoadFromSolution(sol, (string)sf.ConfigList.SelectedItem);
+
+                    EnableMenuItems(true);
+                    EnableAssemblyItems();
+
+                    projectFilename = Path.Combine(sol.Directory, sol.Name + ".ndoc");
+                }
+            }
+            else {
+                warningMessages = LoadFromSolution(sol, config);
+
+                EnableMenuItems(true);
+                EnableAssemblyItems();
+
+                projectFilename = Path.Combine(sol.Directory, sol.Name + ".ndoc");
+            }
+
+            if (warningMessages.Length > 0)
+                WarningForm.ShowWarning("VS Solution Import Warnings", warningMessages, this);
+        }
+
 		private void menuFileOpenSolution_Click (object sender, System.EventArgs e)
 		{
 			if ( QueryContinueDiscardProject() )
