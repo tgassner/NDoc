@@ -72,8 +72,8 @@ namespace NDocVisualStudioAddIn {
         public ICollection<NDoc.VisualStudio.IProject> GetProjects() {
             ICollection<IProject> projects = new List<IProject>();
             foreach (EnvDTE.Project prj in this._applicationObject.Solution.Projects) {
-                if (NDoc.VisualStudio.Project.GetProjectType(prj.Kind) == ProjektType.CS ||
-                    NDoc.VisualStudio.Project.GetProjectType(prj.Kind) == ProjektType.WebSite) {
+                if (NDoc.VisualStudio.Project.GetProjectType(prj.Kind) == ProjektType.CS){ 
+                    //|| NDoc.VisualStudio.Project.GetProjectType(prj.Kind) == ProjektType.WebSite) {
                     projects.Add(new ProjectPlugin(this, this._applicationObject, prj.UniqueName));
                 }
             }
@@ -97,12 +97,13 @@ namespace NDocVisualStudioAddIn {
             }
         }
 
+
         public int ProjectCount {
             get {
                 int count = 0;
                 foreach (EnvDTE.Project prj in this._applicationObject.Solution.Projects) {
-                    if (NDoc.VisualStudio.Project.GetProjectType(prj.Kind) == ProjektType.CS ||
-                        NDoc.VisualStudio.Project.GetProjectType(prj.Kind) == ProjektType.WebSite) {
+                    if (NDoc.VisualStudio.Project.GetProjectType(prj.Kind) == ProjektType.CS){
+                        //|| NDoc.VisualStudio.Project.GetProjectType(prj.Kind) == ProjektType.WebSite) {
                         count++;
                     }
                 }
