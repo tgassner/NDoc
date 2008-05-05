@@ -18,6 +18,8 @@ namespace NDoc.Documenter.Msdn
 		private const string sdkDoc10BaseNamespace = "MS.NETFrameworkSDK";
         private const string sdkDoc11BaseNamespace = "MS.NETFrameworkSDKv1.1";
         private const string sdkDoc20BaseNamespace = "MS.VSCC.v80/MS.MSDN.v80/MS.NETDEVFX.v20.en";
+        private const string sdkDoc30BaseNamespace = "";
+        private const string sdkDoc35BaseNamespace = "";
 		private const string helpURL = "ms-help://";
         private string sdkRoot = "/cpref/html/frlrf";
         private const string sdkDocPageExt = ".htm";
@@ -84,6 +86,10 @@ namespace NDoc.Documenter.Msdn
                         sdkDocExt = sdkDocPageExt;
                         frameworkVersion = "2.0";
                         sdkVersion = SdkVersion.SDK_v2_0;
+                        break;
+                    case SdkVersion.SDK_v3_0:
+                        break;
+                    case SdkVersion.SDK_v3_5:
                         break;
 					default:
 						Debug.Assert( false );		// remind ourselves to update this list when new framework versions are supported

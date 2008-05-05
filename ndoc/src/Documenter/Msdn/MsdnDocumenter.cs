@@ -166,8 +166,32 @@ namespace NDoc.Documenter.Msdn
         {
             if (node.Attributes != null)
             {
+                string type = null;
+                bool isField = false;
+                bool isProperty = false;
+
+                for (int x = 0; x < node.Attributes.Count; x++) {
+                    if (node.Attributes[x].Name == "type") {
+                        type = node.Attributes[x].Value;
+                    }
+                    if (node.Attributes[x].Name == "id") {
+                        if (node.Attributes[x].Value.StartsWith("F:")) {
+                            isField = true;
+                        }
+                        if (node.Attributes[x].Value.StartsWith("P:")) {
+                            isProperty = true;
+                        }
+                    }
+                }
+
+                type = prettyPrintGenericType(type);
+
                 for (int x = 0; x < node.Attributes.Count; x++)
                 {
+                    if (node.Attributes[x].Name == "displayName" && (isField || isProperty) && type != null) {
+                        node.Attributes[x].Value = type;
+                    }
+
                     if (node.Attributes[x].Name == "type")
                     {
                         string memberType = node.Attributes[x].Value;
@@ -213,6 +237,66 @@ namespace NDoc.Documenter.Msdn
                     FixNode(node.ChildNodes[i], ref updatedLinks, map);
                 }
             }
+        }
+
+        /// <summary>
+        /// Fixes the Generic
+        /// input: Class1.System.Collections.Generic.Dictionary{System.String,System.String}
+        /// output: Dictionary<String,String>
+        /// </summary>
+        /// <param name="type">the Type created in the documentation.xml file</param>
+        /// <returns>The prettyprinted Type</returns>
+        private string prettyPrintGenericType(string type) {
+            if (type == null || type == string.Empty) {
+                return null;
+            }
+            StringBuilder sbreturn = new StringBuilder();
+            string checkDelimiters = type;
+            //System.Collections.Generic.IDictionary{System.String,System.Collections.Generic.IDictionary{System.String,System.Collections.Generic.IList{System.String}}}
+            string[] types = type.Split(new char[] { '{', '}', ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (string typeLoop in types) {
+                string typemodification = typeLoop;
+                string[] typeAndNamespace = typeLoop.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
+                sbreturn.Append(typeAndNamespace[typeAndNamespace.Length-1]);
+                int index = checkDelimiters.IndexOfAny(new char[] { '{', '}', ',' });
+                if (index >= 0) {
+                    switch (checkDelimiters[index]) {
+                        case '{':
+                            sbreturn.Append("<");
+                            break;
+                        case '}':
+                            sbreturn.Append(">");
+                            break;
+                        case ',':
+                            sbreturn.Append(",");
+                            break;
+                        default:
+                            break;
+                    }
+                    checkDelimiters = checkDelimiters.Remove(0, index + 1);
+                }
+            }
+
+            while (checkDelimiters.IndexOfAny(new char[] { '{', '}', ',' }) >= 0) {
+                int index = checkDelimiters.IndexOfAny(new char[] { '{', '}', ',' });
+                switch (checkDelimiters[index]) {
+                    case '{':
+                        sbreturn.Append("<");
+                        break;
+                    case '}':
+                        sbreturn.Append(">");
+                        break;
+                    case ',':
+                        sbreturn.Append(",");
+                        break;
+                    default:
+                        break;
+                }
+                checkDelimiters = checkDelimiters.Remove(0, index + 1);
+            }
+
+            return sbreturn.ToString();
         }
 
         /// <summary>
@@ -328,7 +412,7 @@ namespace NDoc.Documenter.Msdn
 					MakeXmlFile(project, tempFileName);
 
                     // For .NET 2.0 Framework, verify/correct ms-help URLs
-                    if (utilities.FrameworkVersion == "2.0")
+                    if (utilities.FrameworkVersion == "2.0" || utilities.FrameworkVersion == "3.0" || utilities.FrameworkVersion == "3.5")
                         FixGenericUrls(tempFileName);
 
 					// Load the XML documentation into DOM and XPATH doc.
