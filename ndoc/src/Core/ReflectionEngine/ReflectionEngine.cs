@@ -2259,7 +2259,9 @@ namespace NDoc.Core.Reflection
 			writer.WriteAttributeString("contract", GetMethodContractValue(eventInfo.GetAddMethod(true)));
 			Type t = eventInfo.EventHandlerType;
 			writer.WriteAttributeString("type", MemberID.GetTypeName(t));
-            writer.WriteAttributeString("displayName", MemberDisplayName.GetMemberDisplayName(t));
+            string displayNameStr = MemberDisplayName.GetMemberDisplayName(t);
+            writer.WriteAttributeString("displayType", MemberDisplayName.GetMemberDisplayName(t));
+            writer.WriteAttributeString("displayName", name);
             writer.WriteAttributeString("valueType", t.IsValueType.ToString().ToLower());
 
 			bool inherited = eventInfo.DeclaringType != eventInfo.ReflectedType;
