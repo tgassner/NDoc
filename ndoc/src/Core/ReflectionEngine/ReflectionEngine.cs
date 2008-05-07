@@ -2036,9 +2036,19 @@ namespace NDoc.Core.Reflection
 //#if NET_2_0
 //            writer.WriteAttributeString("type", MemberID.GetTypeName(t, false));
 //#else
-			writer.WriteAttributeString("type", MemberID.GetTypeName(t));
+            string typeStr = MemberID.GetTypeName(t);
+			writer.WriteAttributeString("type", typeStr);
 //#endif
-            writer.WriteAttributeString("displayType", MemberDisplayName.GetMemberDisplayName(t));
+            //string test = "Name: " + t.Name + " IsGenericType: " + t.IsGenericType.ToString() + " ContainsGenericParameters: " + t.ContainsGenericParameters.ToString();
+
+            string displayTypeStr = MemberDisplayName.GetMemberDisplayName(t);
+            if (t.IsGenericType && !t.ContainsGenericParameters) {
+                displayTypeStr = prettyPrintGenericType(typeStr);
+            } else if (!t.IsGenericType && t.ContainsGenericParameters) {
+                displayTypeStr = t.Name;
+            }
+
+            writer.WriteAttributeString("displayType", displayTypeStr);
             writer.WriteAttributeString("valueType", t.IsValueType.ToString().ToLower());
 
 			bool inherited = (field.DeclaringType != field.ReflectedType);
@@ -2091,6 +2101,71 @@ namespace NDoc.Core.Reflection
 
 			writer.WriteEndElement();
 		}
+
+        /// <summary>
+        /// Fixes the Generic
+        /// input: Class1.System.Collections.Generic.Dictionary{System.String,System.String}
+        /// output: Dictionary<String,String>
+        /// </summary>
+        /// <param name="type">the Type created in the documentation.xml file</param>
+        /// <returns>The prettyprinted Type</returns>
+        private string prettyPrintGenericType(string type) {
+            if (type == null || type == string.Empty) {
+                return null;
+            }
+
+            if (!type.Contains("{")) {
+                return null;
+            }
+
+            StringBuilder sbreturn = new StringBuilder();
+            string checkDelimiters = type;
+            //System.Collections.Generic.IDictionary{System.String,System.Collections.Generic.IDictionary{System.String,System.Collections.Generic.IList{System.String}}}
+            string[] types = type.Split(new char[] { '{', '}', ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (string typeLoop in types) {
+                string typemodification = typeLoop;
+                string[] typeAndNamespace = typeLoop.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
+                sbreturn.Append(typeAndNamespace[typeAndNamespace.Length - 1]);
+                int index = checkDelimiters.IndexOfAny(new char[] { '{', '}', ',' });
+                if (index >= 0) {
+                    switch (checkDelimiters[index]) {
+                        case '{':
+                            sbreturn.Append("<");
+                            break;
+                        case '}':
+                            sbreturn.Append(">");
+                            break;
+                        case ',':
+                            sbreturn.Append(",");
+                            break;
+                        default:
+                            break;
+                    }
+                    checkDelimiters = checkDelimiters.Remove(0, index + 1);
+                }
+            }
+
+            while (checkDelimiters.IndexOfAny(new char[] { '{', '}', ',' }) >= 0) {
+                int index = checkDelimiters.IndexOfAny(new char[] { '{', '}', ',' });
+                switch (checkDelimiters[index]) {
+                    case '{':
+                        sbreturn.Append("<");
+                        break;
+                    case '}':
+                        sbreturn.Append(">");
+                        break;
+                    case ',':
+                        sbreturn.Append(",");
+                        break;
+                    default:
+                        break;
+                }
+                checkDelimiters = checkDelimiters.Remove(0, index + 1);
+            }
+
+            return sbreturn.ToString();
+        }
 
 		/// <summary>
 		/// 
@@ -2338,9 +2413,18 @@ namespace NDoc.Core.Reflection
 //#if NET_2_0
 //                writer.WriteAttributeString("type", MemberID.GetTypeName(t, false));
 //#else
-				writer.WriteAttributeString("type", MemberID.GetTypeName(t));
+                string typeStr = MemberID.GetTypeName(t);
+				writer.WriteAttributeString("type", typeStr);
 //#endif
-                writer.WriteAttributeString("displayName", MemberDisplayName.GetMemberDisplayName(t));
+                string displayNameString = MemberDisplayName.GetMemberDisplayName(t);
+
+                if (t.IsGenericType && !t.ContainsGenericParameters) {
+                    displayNameString = prettyPrintGenericType(typeStr);
+                } else if (!t.IsGenericType && t.ContainsGenericParameters) {
+                    displayNameString = t.Name;
+                }
+
+                writer.WriteAttributeString("displayName", displayNameString);
                 writer.WriteAttributeString("valueType", t.IsValueType.ToString().ToLower());
 
 				if (inherited)
@@ -2567,8 +2651,17 @@ namespace NDoc.Core.Reflection
 				writer.WriteAttributeString("access", GetMethodAccessValue(method));
 				writer.WriteAttributeString("contract", GetMethodContractValue(method));
 				Type t = method.ReturnType;
-				writer.WriteAttributeString("returnType", MemberID.GetTypeName(t));
-				writer.WriteAttributeString("displayReturnType", MemberDisplayName.GetMemberDisplayName(t));
+                string returnTypeStr = MemberID.GetTypeName(t);
+                writer.WriteAttributeString("returnType", returnTypeStr);
+                string displayReturnTypeStr = MemberDisplayName.GetMemberDisplayName(t);
+
+                if (t.IsGenericType && !t.ContainsGenericParameters) {
+                    displayReturnTypeStr = prettyPrintGenericType(returnTypeStr);
+                } else if (!t.IsGenericType && t.ContainsGenericParameters) {
+                    displayReturnTypeStr = t.Name;
+                }
+
+                writer.WriteAttributeString("displayReturnType", displayReturnTypeStr);
 				writer.WriteAttributeString("valueType", t.IsValueType.ToString().ToLower());
 
 				if (inherited)
@@ -2687,9 +2780,22 @@ namespace NDoc.Core.Reflection
 //#if NET_2_0
 //            writer.WriteAttributeString("type", MemberID.GetTypeName(t, false));
 //#else
-			writer.WriteAttributeString("type", MemberID.GetTypeName(t));
+            string typeStr = MemberID.GetTypeName(t);
+            writer.WriteAttributeString("type", typeStr);
 //#endif
-            writer.WriteAttributeString("displayName", MemberDisplayName.GetMemberDisplayName(t));
+            string displayNameStr = MemberDisplayName.GetMemberDisplayName(t);
+
+            if (t.IsGenericType && !t.ContainsGenericParameters) {
+                displayNameStr = prettyPrintGenericType(typeStr);
+            } else if (!t.IsGenericType && t.ContainsGenericParameters) {
+                displayNameStr = t.Name;
+            }
+
+            if (parameter.ParameterType.IsByRef) {
+                displayNameStr = displayNameStr.Replace("&",string.Empty);
+            }
+
+            writer.WriteAttributeString("displayName", displayNameStr);
             writer.WriteAttributeString("valueType", t.IsValueType.ToString().ToLower());
 
 			if (t.IsPointer)
