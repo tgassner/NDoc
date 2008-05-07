@@ -291,10 +291,14 @@
 					</xsl:call-template>
 				</xsl:attribute>
         <!-- Fix from David Smith, March 30, 2006 @ 2:38 pm-->
-        <xsl:value-of select="@displayName" />
+        <!--<xsl:value-of select="@displayName" />-->
+        <!-- Fix from Thomas Gassner, May 06, 2008 @ 04:37 pm-->
+        <xsl:value-of select="@displayType" />
       </a>
 			<xsl:text>&#160;</xsl:text>
-			<xsl:value-of select="@name" />
+      <!-- Fix from Thomas Gassner, May 06, 2008 @ 04:37 pm-->
+      <!--<xsl:value-of select="@displayName" />-->
+      <xsl:value-of select="@displayName" />
 			<xsl:if test="@literal='true'">
 				<xsl:text> = </xsl:text>
 				<xsl:if test="@type='System.String'"><xsl:text>"</xsl:text></xsl:if>

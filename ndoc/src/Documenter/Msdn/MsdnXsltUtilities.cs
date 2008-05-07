@@ -18,10 +18,11 @@ namespace NDoc.Documenter.Msdn
 		private const string sdkDoc10BaseNamespace = "MS.NETFrameworkSDK";
         private const string sdkDoc11BaseNamespace = "MS.NETFrameworkSDKv1.1";
         private const string sdkDoc20BaseNamespace = "MS.VSCC.v80/MS.MSDN.v80/MS.NETDEVFX.v20.en";
-        private const string sdkDoc30BaseNamespace = "";
+        private const string sdkDoc30BaseNamespace = "MS.VSCC.v90/MS.MSDNQTR.v90.en";
         private const string sdkDoc35BaseNamespace = "";
 		private const string helpURL = "ms-help://";
         private string sdkRoot = "/cpref/html/frlrf";
+        private string sdk9Root = "/dv_csref/html";
         private const string sdkDocPageExt = ".htm";
 		private const string msdnOnlineSdkBaseUrl = "http://msdn.microsoft.com/library/default.asp?url=/library/en-us/cpref/html/frlrf";
 		private const string msdnOnlineSdkPageExt = ".asp";
