@@ -24,8 +24,10 @@ namespace NDoc.Documenter.Msdn
         private string sdkRoot = "/cpref/html/frlrf";
         private string sdk9Root = "/dv_csref/html";
         private const string sdkDocPageExt = ".htm";
-		private const string msdnOnlineSdkBaseUrl = "http://msdn.microsoft.com/library/default.asp?url=/library/en-us/cpref/html/frlrf";
-		private const string msdnOnlineSdkPageExt = ".asp";
+		//private const string msdnOnlineSdkBaseUrl = "http://msdn.microsoft.com/library/default.asp?url=/library/en-us/cpref/html/frlrf";
+        private const string msdnOnlineSdkBaseUrl = "http://msdn.microsoft.com/en-us/";
+		//private const string msdnOnlineSdkPageExt = ".asp";
+        private const string msdnOnlineSdkPageExt = ".aspx";
 		private const string systemPrefix = "System.";
 		private string frameworkVersion="";
 		private string sdkDocBaseUrl; 
@@ -36,6 +38,7 @@ namespace NDoc.Documenter.Msdn
 		private string encodingString;
         private Dictionary<string, string> map = new Dictionary<string, string>();
         private SdkVersion sdkVersion;
+        private bool sdkLinksOnWeb;
 
 		/// <summary>
 		/// Initializes a new instance of class MsdnXsltUtilities
@@ -58,35 +61,55 @@ namespace NDoc.Documenter.Msdn
 
 			this.fileNames = fileNames;
 			this.elemNames = elemNames;
-			
+            this.sdkLinksOnWeb = SdkLinksOnWeb;
 
-			if (SdkLinksOnWeb)
-			{
-				sdkDocBaseUrl = msdnOnlineSdkBaseUrl;
-				sdkDocExt = msdnOnlineSdkPageExt;
-			}
-			else
-			{
+            switch (linkToSdkDocVersion) {
+                case SdkVersion.SDK_v1_0:
+                    frameworkVersion = "1.0";
+                    sdkVersion = SdkVersion.SDK_v1_0;
+                    break;
+                case SdkVersion.SDK_v1_1:
+                    frameworkVersion = "1.1";
+                    sdkVersion = SdkVersion.SDK_v1_1;
+                    break;
+                case SdkVersion.SDK_v2_0:
+                    frameworkVersion = "2.0";
+                    sdkVersion = SdkVersion.SDK_v2_0;
+                    break;
+                case SdkVersion.SDK_v3_0:
+                    frameworkVersion = "3.0";
+                    sdkVersion = SdkVersion.SDK_v3_0;
+                    break;
+                case SdkVersion.SDK_v3_5:
+                    frameworkVersion = "3.5";
+                    sdkVersion = SdkVersion.SDK_v3_5;
+                    break;
+                default:
+                    Debug.Assert(false);		// remind ourselves to update this list when new framework versions are supported
+                    break;
+            }
+
+            if (SdkLinksOnWeb)
+            {
+                sdkDocBaseUrl = msdnOnlineSdkBaseUrl;
+                sdkDocExt = msdnOnlineSdkPageExt;
+            }
+            else
+            {
 				switch (linkToSdkDocVersion)
 				{
 					case SdkVersion.SDK_v1_0:
 						sdkDocBaseUrl = GetLocalizedFrameworkURL(sdkDoc10BaseNamespace,linkToSdkDocLangauge);
 						sdkDocExt = sdkDocPageExt;
-						frameworkVersion="1.0";
-                        sdkVersion = SdkVersion.SDK_v1_0;
 						break;
 					case SdkVersion.SDK_v1_1:
 						sdkDocBaseUrl = GetLocalizedFrameworkURL(sdkDoc11BaseNamespace,linkToSdkDocLangauge);
 						sdkDocExt = sdkDocPageExt;
-						frameworkVersion="1.1";
-                        sdkVersion = SdkVersion.SDK_v1_1;
                         break;
                     case SdkVersion.SDK_v2_0:
                         sdkRoot = "/cpref2/html/";
                         sdkDocBaseUrl = GetLocalizedFrameworkURL(sdkDoc20BaseNamespace, linkToSdkDocLangauge);
                         sdkDocExt = sdkDocPageExt;
-                        frameworkVersion = "2.0";
-                        sdkVersion = SdkVersion.SDK_v2_0;
                         break;
                     case SdkVersion.SDK_v3_0:
                         break;
@@ -174,9 +197,11 @@ namespace NDoc.Documenter.Msdn
                         return sdkDocBaseUrl + cref.Substring(2).Replace(".", "") + sdkDocExt;
 					case "T:":	// Type: class, interface, struct, enum, delegate
 						// pointer types link to the type being pointed to
-                        if (frameworkVersion == "2.0")
+                        if (frameworkVersion == "2.0" || frameworkVersion == "3.0" || frameworkVersion == "3.5")
                         {
-                            return sdkDocBaseUrl + "T_" + cref.Substring(2).Replace(".", "_").Replace("*", "") + sdkDocExt;
+                            string ret = sdkDocBaseUrl + "T_" + cref.Substring(2).Replace(".", "_").Replace("*", "") + sdkDocExt;
+                            //string ret = sdkDocBaseUrl + cref.Substring(2).Replace("*", "") + sdkDocExt;
+                            return ret;
                         }
 						else 
                         {
@@ -316,8 +341,15 @@ namespace NDoc.Documenter.Msdn
         /// <returns></returns>
         public string GetClassTopic(string fullName)
         {
-            string url = sdkDocBaseUrl + "T_";
-            if (sdkVersion != SdkVersion.SDK_v2_0)
+            string url;
+
+            if (sdkLinksOnWeb) {
+                url = sdkDocBaseUrl;
+            } else {
+                url = sdkDocBaseUrl + "T_";
+            }
+
+            if (sdkVersion != SdkVersion.SDK_v2_0 && sdkVersion != SdkVersion.SDK_v3_0 && sdkVersion != SdkVersion.SDK_v3_5)
             {
                 fullName = fullName.Replace(".", "");
                 fullName = fullName.Replace("[","");
@@ -383,26 +415,35 @@ namespace NDoc.Documenter.Msdn
             else // Fix Class URL
             {
                 StringBuilder newLink = new StringBuilder();
-                for (int i = name.Length - 2; i > 0; i--)
-                {
-                    if (name[i] == '.')
-                    {
-                        string ns = name.Substring(0, i);
-                        if (MsdnHtmlUtilitiesV20.namespaces.ContainsKey(ns))
-                        {
-                            newLink.Append(MsdnHtmlUtilitiesV20.namespaces[ns]);
-                            name = name.Substring(i + 1);
-                            if (name.IndexOf('[') != -1)
-                                name = name.Substring(0, name.IndexOf('['));
-                            newLink.Append(name);
-                            newLink.Append(sdkDocPageExt);
-                            break;
+                if (name.Contains("`")) {
+                    //msdnID = msdnResolver
+                    //url += msdnID;
+                    map[fullName] = url;
+                } else {
+                    for (int i = name.Length - 2; i > 0; i--) {
+                        if (name[i] == '.') {
+                            string ns = name.Substring(0, i);
+                            if (MsdnHtmlUtilitiesV20.namespaces.ContainsKey(ns)) {
+                                newLink.Append(MsdnHtmlUtilitiesV20.namespaces[ns]);
+                                name = name.Substring(i + 1);
+                                if (name.IndexOf('[') != -1)
+                                    name = name.Substring(0, name.IndexOf('['));
+                                newLink.Append(name);
+                                if (sdkLinksOnWeb) {
+                                    newLink.Replace("_", ".");
+                                    newLink.Append(msdnOnlineSdkPageExt);
+                                } else {
+                                    newLink.Append(sdkDocPageExt);
+                                }
+
+                                break;
+                            }
                         }
                     }
+                    url += newLink.ToString();
+                    url = url.Replace("@", "");
+                    url = url.Replace("*", "");
                 }
-                url += newLink.ToString();
-                url = url.Replace("@", "");
-                url = url.Replace("*", "");
             }
             map[fullName] = url;
             return url;

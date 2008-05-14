@@ -446,7 +446,7 @@ namespace NDoc.Documenter.Msdn
 					MakeHtmlForAssemblies();
 
                     // For .NET 2.0 Framework, verify/correct ms-help URLs
-                    if (utilities.FrameworkVersion == "2.0")
+                    if (utilities.FrameworkVersion == "2.0" || utilities.FrameworkVersion == "3.0" || utilities.FrameworkVersion == "3.5")
                     {
                         DateTime start = DateTime.Now;
                         Debug.WriteLine("Verifying URLs");
