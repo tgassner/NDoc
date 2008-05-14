@@ -88,6 +88,8 @@
     <Reference Include="System.Drawing.Design">
       <Name>System.Drawing.Design</Name>
     </Reference>
+    <Reference Include="System.EnterpriseServices" />
+    <Reference Include="System.Web.Services" />
     <Reference Include="System.Windows.Forms">
       <Name>System.Windows.Forms</Name>
     </Reference>
@@ -136,10 +138,24 @@
     <Compile Include="MsdnXsltUtilities.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
     <Compile Include="StyleSheetCollection.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Web References\com.microsoft.msdn.services\Reference.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Reference.map</DependentUpon>
+    </Compile>
     <None Include="Msdn.build" />
+    <None Include="Web References\com.microsoft.msdn.services\atoms.xsd" />
+    <None Include="Web References\com.microsoft.msdn.services\atoms0.xsd" />
+    <None Include="Web References\com.microsoft.msdn.services\atoms1.xsd" />
+    <None Include="Web References\com.microsoft.msdn.services\default.xsd" />
     <EmbeddedResource Include="css\MSDN.css" />
     <EmbeddedResource Include="images\intevent.gif" />
     <EmbeddedResource Include="images\intfield.gif" />
@@ -191,6 +207,51 @@
     <EmbeddedResource Include="xslt\type.xslt" />
     <EmbeddedResource Include="xslt\typehierarchy.xslt" />
     <EmbeddedResource Include="xslt\vb-syntax.xslt" />
+  </ItemGroup>
+  <ItemGroup>
+    <WebReferences Include="Web References\" />
+  </ItemGroup>
+  <ItemGroup>
+    <WebReferenceUrl Include="http://services.msdn.microsoft.com/ContentServices/ContentService.asmx">
+      <UrlBehavior>Dynamic</UrlBehavior>
+      <RelPath>Web References\com.microsoft.msdn.services\</RelPath>
+      <UpdateFromURL>http://services.msdn.microsoft.com/ContentServices/ContentService.asmx</UpdateFromURL>
+      <ServiceLocationURL>
+      </ServiceLocationURL>
+      <CachedDynamicPropName>
+      </CachedDynamicPropName>
+      <CachedAppSettingsObjectName>Settings</CachedAppSettingsObjectName>
+      <CachedSettingsPropName>NDoc_Documenter_Msdn_com_microsoft_msdn_services_ContentService</CachedSettingsPropName>
+    </WebReferenceUrl>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <None Include="Web References\com.microsoft.msdn.services\atoms2.xsd" />
+    <None Include="Web References\com.microsoft.msdn.services\atoms3.xsd" />
+    <None Include="Web References\com.microsoft.msdn.services\atoms4.xsd" />
+    <None Include="Web References\com.microsoft.msdn.services\atoms5.xsd" />
+    <None Include="Web References\com.microsoft.msdn.services\atoms6.xsd" />
+    <None Include="Web References\com.microsoft.msdn.services\atoms7.xsd" />
+    <None Include="Web References\com.microsoft.msdn.services\ContentService.disco" />
+    <None Include="Web References\com.microsoft.msdn.services\ContentService.wsdl" />
+    <None Include="Web References\com.microsoft.msdn.services\default0.xsd" />
+    <None Include="Web References\com.microsoft.msdn.services\default1.xsd" />
+    <None Include="Web References\com.microsoft.msdn.services\default2.xsd" />
+    <None Include="Web References\com.microsoft.msdn.services\getContentResponse.datasource">
+      <DependentUpon>Reference.map</DependentUpon>
+    </None>
+    <None Include="Web References\com.microsoft.msdn.services\getNavigationPathsResponse.datasource">
+      <DependentUpon>Reference.map</DependentUpon>
+    </None>
+    <None Include="Web References\com.microsoft.msdn.services\Reference.map">
+      <Generator>MSDiscoCodeGenerator</Generator>
+      <LastGenOutput>Reference.cs</LastGenOutput>
+    </None>
+    <None Include="Web References\com.microsoft.msdn.services\urn_msdn_com_public_content_syndication_2006_09_common.xsd" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

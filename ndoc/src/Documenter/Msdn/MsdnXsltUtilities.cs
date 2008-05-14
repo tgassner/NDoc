@@ -7,6 +7,9 @@ using System.Text;
 
 using NDoc.Core;
 using NDoc.Core.Reflection;
+using NDoc.Documenter.Msdn.com.microsoft.msdn.services;
+using System.Web.Services.Protocols;
+using System.Net;
 
 namespace NDoc.Documenter.Msdn
 {
@@ -29,6 +32,7 @@ namespace NDoc.Documenter.Msdn
 		//private const string msdnOnlineSdkPageExt = ".asp";
         private const string msdnOnlineSdkPageExt = ".aspx";
 		private const string systemPrefix = "System.";
+        private string locale = "en-us";
 		private string frameworkVersion="";
 		private string sdkDocBaseUrl; 
 		private string sdkDocExt; 
@@ -39,6 +43,7 @@ namespace NDoc.Documenter.Msdn
         private Dictionary<string, string> map = new Dictionary<string, string>();
         private SdkVersion sdkVersion;
         private bool sdkLinksOnWeb;
+        private ContentService proxy = new ContentService();
 
 		/// <summary>
 		/// Initializes a new instance of class MsdnXsltUtilities
@@ -130,6 +135,8 @@ namespace NDoc.Documenter.Msdn
             map.Add("System.Collections.Generic.Enumerator`2", "System.Collections.Generic.IEnumerator`1");
             map.Add("System.Collections.Generic.KeyCollection`2", "System.Collections.Generic.Dictionary`2_KeyCollection");
             map.Add("System.Collections.Generic.ValueCollection`2", "System.Collections.Generic.Dictionary`2_ValueCollection");
+
+            this.proxy.SoapVersion = SoapProtocolVersion.Soap11;
 		}
 
 		/// <summary>
@@ -408,17 +415,19 @@ namespace NDoc.Documenter.Msdn
                         }
                         name = newValue;
                     }
-                    url += name.Replace(".", "_");
-                    url += sdkDocPageExt;
+                    if (sdkLinksOnWeb) {
+                        url = GetClassTopic(name);
+                    } else {
+                        url += name.Replace(".", "_");
+                        url += sdkDocPageExt;
+                    }
                 }
             }
             else // Fix Class URL
             {
                 StringBuilder newLink = new StringBuilder();
-                if (name.Contains("`")) {
-                    //msdnID = msdnResolver
-                    //url += msdnID;
-                    map[fullName] = url;
+                if (sdkLinksOnWeb && name.Contains("`")) {
+                    url += getMSDNcontentId(name, Membertype.Type);
                 } else {
                     for (int i = name.Length - 2; i > 0; i--) {
                         if (name[i] == '.') {
@@ -447,6 +456,94 @@ namespace NDoc.Documenter.Msdn
             }
             map[fullName] = url;
             return url;
+        }
+
+
+        private string getMSDNcontentId(string ident, Membertype membertype) {
+            if (proxy == null) {
+                return string.Empty;
+            }
+
+            string typePrefix = string.Empty;
+            switch (membertype) {
+                case Membertype.Event:
+                    typePrefix = "E:";
+                    break;
+                case Membertype.Field:
+                    typePrefix = "F:";
+                    break;
+                case Membertype.Method:
+                    typePrefix = "M:";
+                    break;
+                case Membertype.Property:
+                    typePrefix = "P:";
+                    break;
+                case Membertype.Type:
+                    typePrefix = "T:";
+                    break;
+                default:
+                    typePrefix = string.Empty;
+                    break;
+            }
+
+            getContentRequest request = new getContentRequest();
+            request.contentIdentifier = "AssetId:" + typePrefix + ident;
+            request.locale = this.locale;
+            string contentId = null;
+            getContentResponse response = null;
+
+            try {
+                response = this.proxy.GetContent(request);
+            } catch (WebException) {
+                this.proxy = null;
+            } catch (SoapException) {
+            }
+
+            if (response == null) {
+                return string.Empty;
+            }
+
+            if (!string.IsNullOrEmpty(response.contentId)) {
+                return response.contentId;
+            } else {
+                return string.Empty;
+            }
+        }
+
+        enum Membertype {
+            Property,
+            Method,
+            Field,
+            Event,
+            Type
+        }
+
+
+        public string GetLinkForSystemMethod(string declaringType, string name) {
+            return GetLinkForSystemMember(declaringType, name, Membertype.Method);
+        }
+
+        public string GetLinkForSystemProperty(string declaringType, string name) {
+            return GetLinkForSystemMember(declaringType, name, Membertype.Property);
+        }
+
+        public string GetLinkForSystemField(string declaringType, string name) {
+            return GetLinkForSystemMember(declaringType, name, Membertype.Field);
+        }
+
+        public string GetLinkForSystemEvent(string declaringType, string name) {
+            return GetLinkForSystemMember(declaringType, name, Membertype.Event);
+        }
+
+        private string GetLinkForSystemMember(string declaringType, string name, Membertype membertype) {
+            if (sdkLinksOnWeb) {
+                if (declaringType.Contains("`") || declaringType.Contains("{")) {
+                    return this.sdkDocBaseUrl + getMSDNcontentId(declaringType + "." + name, membertype);
+                }
+                return this.sdkDocBaseUrl + declaringType + "." + name + this.sdkDocExt;
+            } else {
+                return this.sdkDocBaseUrl + declaringType.Replace(".", "").Replace(",", "") + "Class" + name.Replace(".", "").Replace(",", "") + "Topic" + sdkDocExt;
+            }
         }
 	}
 }
