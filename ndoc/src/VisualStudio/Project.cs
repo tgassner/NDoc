@@ -51,14 +51,24 @@ namespace NDoc.VisualStudio
 
     public abstract class Project : IProject {
 
+        /// <summary>Gets the name of the assembly this project generates.</summary>
         public abstract string AssemblyName {
             get;
         }
 
+        /// <summary>Gets the configuration with the specified name.</summary>
+        /// <param name="configName">A valid configuration name, usually "Debug" or "Release".</param>
+        /// <returns>A ProjectConfig object.</returns>
         public abstract IProjectConfig GetConfiguration(string configName);
 
+        /// <summary>Gets the relative path (from the solution directory) to the
+        /// assembly this project generates.</summary>
+        /// <param name="configName">A valid configuration name, usually "Debug" or "Release".</param>
         public abstract string GetRelativeOutputPathForConfiguration(string configName);
 
+        /// <summary>Gets the relative path (from the solution directory) to the
+        /// XML documentation this project generates.</summary>
+        /// <param name="configName">A valid configuration name, usually "Debug" or "Release".</param>
         public abstract string GetRelativePathToDocumentationFile(string configName);
 
         protected string _ID;
@@ -79,10 +89,13 @@ namespace NDoc.VisualStudio
             }
         }
 
+        /// <summary>Gets the filename of the generated assembly.</summary>
         public abstract string OutputFile {
             get;
         }
 
+        /// <summary>Gets the output type of the project.</summary>
+        /// <value>"Library", "Exe", or "WinExe"</value>
         public abstract string OutputType {
             get;
         }
@@ -96,6 +109,8 @@ namespace NDoc.VisualStudio
             }
         }
 
+        /// <summary>Reads the project file from the specified path.</summary>
+        /// <param name="path">The path to the project file.</param>
         public abstract void Read(string path);
 
         private string _RelativePath;
@@ -111,6 +126,7 @@ namespace NDoc.VisualStudio
             }
         }
 
+        /// <summary>Gets the default namespace for the project.</summary>
         public abstract string RootNamespace {
             get;
         }
@@ -345,33 +361,6 @@ namespace NDoc.VisualStudio
             }
         }
 
-        ///// <summary>Gets a string that represents the type of project.</summary>
-        ///// <value>"Visual C++" or "C# Local"</value>
-        //public override string ProjectType {
-        //    get {
-        //        switch (_Solution.Ide) {
-        //            case IdeType.Studio2002:
-        //            case IdeType.Studio2003:
-        //                string projectType = "";
-
-        //                if ((bool)_ProjectNavigator.Evaluate("boolean(VisualStudioProject/@ProjectType='Visual C++')")) {
-        //                    projectType = "Visual C++";
-        //                } else if ((bool)_ProjectNavigator.Evaluate("boolean(VisualStudioProject/CSHARP/@ProjectType='Local')")) {
-        //                    projectType = "C# Local";
-        //                } else if ((bool)_ProjectNavigator.Evaluate("boolean(VisualStudioProject/CSHARP/@ProjectType='Web')")) {
-        //                    projectType = "C# Web";
-        //                }
-        //                return projectType;
-        //            case IdeType.Studio2005:
-        //            case IdeType.Studio2008:
-
-        //                return null;
-        //            default:
-        //                return null;
-        //        }
-        //    }
-        //}
-
         /// <summary>Gets the name of the assembly this project generates.</summary>
         public override string AssemblyName {
             get {
@@ -449,26 +438,6 @@ namespace NDoc.VisualStudio
             string documentationFile;
 
             name = outputPath = documentationFile = string.Empty;
-
-            //XPathNodeIterator nodes =
-            //    _ProjectNavigator.Select(
-            //    String.Format(
-            //    "/VisualStudioProject/CSHARP/Build/Settings/Config[@Name='{0}']",
-            //    configName));
-            //XPathNodeIterator nodes =
-            //    _ProjectNavigator.Select("/Project/PropertyGroup");
-                //String.Format(
-                //"/Project/PropertyGroup/Configuration[@Config=' \'$(Configuration)|$(Platform)\' == \''{0}'\' ]",
-                //configName));
-
-            //nodes.MoveNext();
-            //navigator = nodes.Current;
-
-            //string xx = _Navigator.Evaluate("string(@OutputPath)");
-
-            //if (nodes.MoveNext()) {
-            //    navigator = nodes.Current;
-            //}
 
             IEnumerator<string> projectFileEnum = _ProjectFile.GetEnumerator();
 

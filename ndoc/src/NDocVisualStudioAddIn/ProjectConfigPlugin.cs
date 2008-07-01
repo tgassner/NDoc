@@ -38,29 +38,27 @@ namespace NDocVisualStudioAddIn {
             }
         }
 
+        /// <summary>Gets the name of the file (relative to the project 
+        /// directory) into which documentation comments will be 
+        /// processed.</summary>
         public string DocumentationFile {
             get {
                 return getConfigurationProperty("DocumentationFile");
             }
         }
 
+        /// <summary>Gets the name of the configuration.</summary>
+        /// <remarks>This is usually "Debug" or "Release".</remarks>
         public string Name {
             get { 
                 return _configuration + "|" + _platform; 
             }
         }
 
+        /// <summary>Gets the location of the output files (relative to the 
+        /// project directory) for this project's configuration.</summary>
         public string OutputPath {
             get {
-                //string msg = string.Empty;
-                //Properties props = getConfiguration().Properties;
-                //foreach (Property prop in props) {
-                //    msg += "\n" + prop.Name;
-                //    try {
-                //        msg += ": " + prop.Value;
-                //    } catch (Exception) {}
-                //}
-                //System.Windows.Forms.MessageBox.Show(msg);
                 return getConfigurationProperty("OutputPath");
             }
         }
