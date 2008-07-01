@@ -45,58 +45,6 @@ namespace NDoc.VisualStudio {
         Unknown
     }
 
-    ////ToDo: Description for this Class
-    //public class ConfigurationElements {
-    //    private IList<string> _platforms;
-    //    private IDictionary<Guid, ProjectElements> _projects;  //<project Guid,configs und Platforms of the Project>
-
-    //    public ConfigurationElements() {
-    //        this._platforms = new List<string>();
-    //        this._projects = new Dictionary<Guid, ProjectElements>();
-    //    }
-
-    //    public IList<string> Platforms {
-    //        get {
-    //            return this._platforms;
-    //        }
-    //    }
-
-    //    public IDictionary<Guid, ProjectElements> Projects {
-    //        get {
-    //            return this._projects;
-    //        }
-    //    }
-    //}
-
-    ////ToDo: Descritopns for this Class
-    //public struct ProjectElements {
-    //    private string _projectConfig;
-    //    private string _platform;
-
-    //    public ProjectElements(string projectConfig, string platform) {
-    //        this._platform = platform;
-    //        this._projectConfig = projectConfig;
-    //    }
-
-    //    public string ProjectConfig {
-    //        get {
-    //            return this._projectConfig;
-    //        }
-    //        set {
-    //            this._projectConfig = value;
-    //        }
-    //    }
-
-    //    public string Platform {
-    //        get {
-    //            return this._platform;
-    //        }
-    //        set {
-    //            this._platform = value;
-    //        }
-    //    }
-    //}
-
     /// <summary>
     /// Abstract representation of a Visual Studio solution file.
     /// </summary>
@@ -115,21 +63,19 @@ namespace NDoc.VisualStudio {
             }
         }
 
+        /// <summary> List of Configurations </summary>
         protected Dictionary<string, Dictionary<string, string>> _configurations = new Dictionary<string, Dictionary<string, string>>();
+
+        /// <summary> List of Plattforms </summary>
         protected Dictionary<string, Dictionary<string, string>> _platforms = new Dictionary<string, Dictionary<string, string>>();
+
+        /// <summary> List of Configurations and Plattformcombinations</summary>
         protected Dictionary<string, Dictionary<string, string>> _configurationAndPlatforms = new Dictionary<string, Dictionary<string, string>>();
-        //protected IDictionary<string, ConfigurationElements> _newConfigurations = new Dictionary<string, ConfigurationElements>();
-        
-        ///// <summary>
-        ///// Get the solution's configurations.
-        ///// </summary>
-        ///// <returns>A collection of configuration Elements.</returns>
-        //public ICollection<ConfigurationElements> GetConfigurations() {
-        //    return null;
-        //}
+
 
         /// <summary>
         /// Get the solution's configurations Names.
+        /// VS 2005 and 2008 Solutions return Config and Plattform kombinations
         /// </summary>
         /// <returns>A collection of configuration names.</returns>
         public abstract ICollection<string> GetConfigurationsNames();
@@ -172,7 +118,9 @@ namespace NDoc.VisualStudio {
         protected IdeType _ide = IdeType.Unknown;
 
         /// <summary>Gets the Ide property.</summary>
-        /// <remarks>This is the Version of Visual Studio or other supported IDEs</remarks>
+        /// <remarks>This is the Version of Visual Studio or other supported IDEs
+        ///  a Value of the enum NDoc.VisualStudio.IdeType
+        /// </remarks>
         public IdeType Ide {
             get {
                 return _ide;
@@ -194,6 +142,10 @@ namespace NDoc.VisualStudio {
             }
         }
 
+        /// <summary>
+        /// Overritten ToString() Method
+        /// </summary>
+        /// <returns>The name of the Solution</returns>
         public override string ToString() {
             return this._name;
         }
@@ -277,6 +229,10 @@ namespace NDoc.VisualStudio {
             }
         }
 
+        /// <summary>
+        /// Reads the Konfig defined in the Solution
+        /// </summary>
+        /// <param name="reader"></param>
         private void ReadSolutionConfig(TextReader reader) {
             string line;
             while ((line = reader.ReadLine()) != null) {
@@ -400,9 +356,9 @@ namespace NDoc.VisualStudio {
         }
 
         /// <summary>
-        /// Get the solution's configurations Names.
+        /// Get the solution's configurationsand Plattform combination Names.
         /// </summary>
-        /// <returns>A collection of configuration names.</returns>
+        /// <returns>A collection of configurationand plattform combination names.</returns>
         public override ICollection<string> GetConfigurationsNames() {
             return _configurationAndPlatforms.Keys;
         }
@@ -422,7 +378,10 @@ namespace NDoc.VisualStudio {
             if (ce == null) {
                 return null;
             } else {
-                return ce[projectId];
+                if (ce.ContainsKey(projectId))
+                    return ce[projectId];
+                else
+                    return null;
             }
         }
 
@@ -465,23 +424,6 @@ namespace NDoc.VisualStudio {
         }
 
         private void ReadSolutionConfig(TextReader reader) {
-            //string line;
-            //while ((line = reader.ReadLine()) != null && !line.StartsWith("\tEndGlobalSection")) {
-            //    int eqpos;
-            //    string config;
-            //    eqpos = line.IndexOf('=');
-            //    config = line.Substring(eqpos + 2);
-
-            //    string[] configAndPlatform = config.Split(new char[] { '|' });
-            //    configAndPlatform[0] = configAndPlatform[0].Trim();
-            //    configAndPlatform[1] = configAndPlatform[1].Trim();
-
-            //    if (!_configurations.ContainsKey(configAndPlatform[0])) {
-            //        //_configurations.Add(configAndPlatform[0], new ConfigurationElements());
-            //    }
-
-            //    //_configurations[configAndPlatform[0]].Platforms.Add(configAndPlatform[1]);
-            //}
             string line;
             while ((line = reader.ReadLine()) != null) {
                 if (line.StartsWith("\tEndGlobalSection"))
@@ -511,28 +453,8 @@ namespace NDoc.VisualStudio {
             string pattern;
             string line;
 
-            //while ((line = reader.ReadLine()) != null && !line.StartsWith("\tEndGlobalSection")) {
-            //    if (line.Contains("Build")) {
-            //        //string[] elements = line.Split(new char[] {'.'});
-            //        //line.IndexOf('.');
-
-            //        Guid projid = new Guid(line.Substring(0, line.IndexOf('.')).Trim());
-
-            //        string solcfg = line.Substring(line.IndexOf('.') + 1, line.IndexOf("|") - line.IndexOf('.') - 1);
-
-            //        string projcfg = line.Substring(line.IndexOf('=') + 2, line.LastIndexOf('|') - line.IndexOf('=') - 2);
-            //        string projpltfm = line.Substring(line.LastIndexOf('|') + 1).Trim();
-
-            //        if (!_newConfigurations[solcfg].Projects.ContainsKey(projid)) {
-            //            _newConfigurations[solcfg].Projects.Add(projid, new ProjectElements(projcfg, projpltfm));
-            //        }
-            //    }
-            //}
-
             while ((line = reader.ReadLine()) != null && !line.StartsWith("\tEndGlobalSection")) {
                 if (line.Contains("Build")) {
-                    //string[] elements = line.Split(new char[] {'.'});
-                    //line.IndexOf('.');
 
                     string projid = line.Substring(0, line.IndexOf('.')).Trim();
 
@@ -561,8 +483,6 @@ namespace NDoc.VisualStudio {
         }
 
         private void AddProject(string projectLine) {
-            //string pattern = @"^Project\(""(?<unknown>\S+)""\) = ""(?<name>\S+)"", ""(?<path>\S+)"", ""(?<id>\S+)""";
-            // fix for bug 887476 
             string pattern = @"^Project\(""(?<projecttype>.*?)""\) = ""(?<name>.*?)"", ""(?<path>.*?)"", ""(?<id>.*?)""";
             Regex regex = new Regex(pattern);
             Match match = regex.Match(projectLine);
@@ -580,7 +500,6 @@ namespace NDoc.VisualStudio {
                     case ProjektType.CS:
                     //case ProjektType.WebSite:
 
-                        //Project0203 project = new Project0203(this, new Guid(id), name, Project0203.GetProjectType(projectTypeGUID));
                         IProject project = VisualStudioFactory.CreateProject(this, id, name, Project.GetProjectType(projectTypeGUID));
 
                         string absoluteProjectPath = String.Empty;
@@ -619,13 +538,5 @@ namespace NDoc.VisualStudio {
                 }
             }
         }
-
-        //		/// <summary>Gets the project with the specified GUID.</summary>
-        //		/// <param name="id">The GUID used to identify the project in the .sln file.</param>
-        //		/// <returns>The project.</returns>
-        //		public Project GetProject(Guid id)
-        //		{
-        //			return (Project)_projects[id];
-        //		}
     }
 }

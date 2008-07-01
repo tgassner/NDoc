@@ -30,14 +30,21 @@ namespace NDoc.VisualStudio
 {
     public abstract class ProjectConfig : IProjectConfig {
 
+        /// <summary>Gets the name of the file (relative to the project 
+        /// directory) into which documentation comments will be 
+        /// processed.</summary>
         public abstract string DocumentationFile {
             get;
         }
 
+        /// <summary>Gets the name of the configuration.</summary>
+        /// <remarks>This is usually "Debug" or "Release".</remarks>
         public abstract string Name {
             get;
         }
 
+        /// <summary>Gets the location of the output files (relative to the 
+        /// project directory) for this project's configuration.</summary>
         public abstract string OutputPath {
             get;
         }
@@ -102,7 +109,7 @@ namespace NDoc.VisualStudio
         }
 
         /// <summary>Gets the name of the configuration.</summary>
-        /// <remarks>This is usually "Debug" or "Release".</remarks>
+        /// <remarks>This is usually "Debug" or "Release". WITH Plattform</remarks>
         public override string Name {
             get {
                 return _Name;

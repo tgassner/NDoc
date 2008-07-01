@@ -16,6 +16,7 @@ namespace NDocVisualStudioAddIn {
             this._solution = solution;
         }
 
+        /// <summary>Gets the name of the assembly this project generates.</summary>
         public string AssemblyName {
             get {
                 EnvDTE.Project proj = this._applicationObject.Solution.Projects.Item(_uniqueName);
@@ -23,6 +24,9 @@ namespace NDocVisualStudioAddIn {
             }
         }
 
+        /// <summary>Gets the configuration with the specified name.</summary>
+        /// <param name="configName">A valid configuration name, usually "Debug" or "Release".</param>
+        /// <returns>A ProjectConfig object.</returns>
         public NDoc.VisualStudio.IProjectConfig GetConfiguration(string configName) {
             string[] configAndPlatform = configName.Split(new char[] { '|' }, StringSplitOptions.None);
             if (configAndPlatform.Length != 2) {
@@ -32,12 +36,18 @@ namespace NDocVisualStudioAddIn {
 
         }
 
+        /// <summary>Gets the relative path (from the solution directory) to the
+        /// assembly this project generates.</summary>
+        /// <param name="configName">A valid configuration name, usually "Debug" or "Release".</param>
         public string GetRelativeOutputPathForConfiguration(string configName) {
             return System.IO.Path.Combine(
                             System.IO.Path.Combine(RelativePath, GetConfiguration(configName).OutputPath),
                             OutputFile);
         }
 
+        /// <summary>Gets the relative path (from the solution directory) to the
+        /// XML documentation this project generates.</summary>
+        /// <param name="configName">A valid configuration name, usually "Debug" or "Release".</param>
         public string GetRelativePathToDocumentationFile(string configName) {
             string path = string.Empty;
 
@@ -49,12 +59,14 @@ namespace NDocVisualStudioAddIn {
             return path;
         }
 
+        /// <summary>Gets the GUID that identifies the project.</summary>
         public string ID {
             get {
                 return this._uniqueName;
             }
         }
 
+        /// <summary>Gets the name of the project.</summary>
         public string Name {
             get {
                 EnvDTE.Project proj = this._applicationObject.Solution.Projects.Item(_uniqueName);
@@ -62,12 +74,15 @@ namespace NDocVisualStudioAddIn {
             }
         }
 
+        /// <summary>Gets the filename of the generated assembly.</summary>
         public string OutputFile {
             get {
                 return this.getProjectProperty(_uniqueName, "OutputFileName");
             }
         }
 
+        /// <summary>Gets the output type of the project.</summary>
+        /// <value>"Library", "Exe", or "WinExe"</value>
         public string OutputType {
             get {
                 //http://msdn2.microsoft.com/en-us/library/aa983979(VS.71).aspx
@@ -90,6 +105,7 @@ namespace NDocVisualStudioAddIn {
             }
         }
 
+        /// <summary> Gets the Type of the Project (CS, CPP, VB, Setup,..) </summary>
         public NDoc.VisualStudio.ProjektType Type {
             get {
                 EnvDTE.Project proj = this._applicationObject.Solution.Projects.Item(_uniqueName);
@@ -106,6 +122,8 @@ namespace NDocVisualStudioAddIn {
             throw new NotImplementedException("public void Read(string path)");
         }
 
+        /// <summary>Gets or sets the relative path (from the solution 
+        /// directory) to the project directory.</summary>
         public string RelativePath {
             get {
                 return this.getProjectProperty(_uniqueName, "FullPath");
@@ -115,18 +133,23 @@ namespace NDocVisualStudioAddIn {
             }
         }
 
+        /// <summary>Gets the default namespace for the project.</summary>
         public string RootNamespace {
             get {
                 return this.getProjectProperty(_uniqueName, "RootNamespace");
             }
         }
 
+        /// <summary>Gets the solution that contains this project.</summary>
         public NDoc.VisualStudio.ISolution Solution {
             get {
                 return _solution;
             }
         }
 
+        /// <summary>
+        /// Helpmethod to extract the Properties of a Project
+        /// </summary>
         private string getProjectProperty(string projectUniqueName, string key) {
             try {
                 EnvDTE.Project prj = _applicationObject.Solution.Projects.Item(projectUniqueName);
