@@ -180,14 +180,14 @@ namespace NDoc.Documenter.Msdn
 			}
 		}
 
-		bool _SdkLinksOnWeb = false;
+		bool _SdkLinksOnWeb = true;
 
 		/// <summary>Gets or sets the SdkLinksOnWeb property.</summary>
 		/// <remarks>
 		/// </remarks>
 		[Category("Documentation Main Settings")]
 		[Description("Turning this flag on will point all SDK links to the online MSDN library")]
-		[DefaultValue(false)]
+		[DefaultValue(true)]
 		public bool SdkLinksOnWeb
 		{
 			get { return _SdkLinksOnWeb; }
